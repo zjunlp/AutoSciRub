@@ -192,8 +192,8 @@ If you use AutoSciRub in your research, please cite:
 
 ```bibtex
 @article{autoscirub,
-  title={AutoSciRub: Automatic Rubric Induction for Scientific Agent Improvement},
-  author={Wang, Xuehai and others},
+  title={Learning to Evaluate Before Improving: Automatic Rubric Induction for Automatic Research Agents},
+  author={Wang, Xuehai and Qin, Haowei and Liu, Tongxin and Li, Junkai and Xu, Buqiang and others},
   journal={arXiv preprint},
   year={2026}
 }
