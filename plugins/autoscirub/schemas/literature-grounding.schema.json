@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AutoSciRub Literature Grounding",
+  "type": "object",
+  "required": ["schema_version", "sources", "goals"],
+  "properties": {
+    "schema_version": { "type": "string" },
+    "sources": { "type": "array" },
+    "goals": { "type": "array" }
+  },
+  "additionalProperties": true
+}

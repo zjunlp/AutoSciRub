@@ -1,0 +1,4 @@
+interface:
+  display_name: "Targeted Revision"
+  short_description: "Apply one revision round from verification gaps"
+  default_prompt: "Use $targeted-revision to perform one AutoSciRub revision round from the latest verification gaps."

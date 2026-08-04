@@ -1,0 +1,4 @@
+interface:
+  display_name: "Criterion-Level Verification"
+  short_description: "Check report evidence against criteria"
+  default_prompt: "Use $criterion-level-verification to check the report against the executable rubric criterion by criterion."

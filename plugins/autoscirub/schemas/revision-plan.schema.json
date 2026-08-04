@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AutoSciRub Revision Plan",
+  "type": "object",
+  "required": ["schema_version", "round", "targets"],
+  "properties": {
+    "schema_version": { "type": "string" },
+    "round": { "type": "integer" },
+    "targets": { "type": "array" }
+  },
+  "additionalProperties": true
+}

@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AutoSciRub Executable Rubric",
+  "type": "object",
+  "required": ["schema_version", "goals", "criteria"],
+  "properties": {
+    "schema_version": { "type": "string" },
+    "goals": { "type": "array" },
+    "criteria": { "type": "array" },
+    "claims_to_avoid": { "type": "array" }
+  },
+  "additionalProperties": true
+}

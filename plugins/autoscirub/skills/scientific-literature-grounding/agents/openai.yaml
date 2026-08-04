@@ -1,0 +1,4 @@
+interface:
+  display_name: "Scientific Literature Grounding"
+  short_description: "Ground goals in scientific practice"
+  default_prompt: "Use $scientific-literature-grounding to ground the rubric skeleton in literature, methods, metrics, and evidence forms."

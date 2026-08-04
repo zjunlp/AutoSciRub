@@ -1,0 +1,4 @@
+interface:
+  display_name: "AutoSciRub"
+  short_description: "Orchestrate the full AutoSciRub workflow"
+  default_prompt: "Use $autoscirub to orchestrate rubric induction, verification, and targeted revision for this research task."

@@ -1,0 +1,41 @@
+state_dir: ".autoscirub"
+
+retrieval:
+  enabled_sources:
+    - local_literature
+    - arxiv
+    - openalex
+    - semantic_scholar
+    - tavily
+    - web
+
+  providers:
+    arxiv:
+      enabled: true
+
+    openalex:
+      enabled: true
+      email_env: "OPENALEX_EMAIL"
+
+    semantic_scholar:
+      enabled: true
+      api_key_env: "SEMANTIC_SCHOLAR_API_KEY"
+
+    tavily:
+      enabled: false
+      api_key_env: "TAVILY_API_KEY"
+
+    mineru:
+      enabled: false
+      api_key_env: "MINERU_API_TOKEN"
+
+  limits:
+    max_queries_per_goal: 5
+    max_core_sources: 7
+    max_supplemental_sources: 10
+    max_results_per_query: 10
+
+  exclusions:
+    excluded_paths: []
+    blocked_titles: []
+    blocked_domains: []

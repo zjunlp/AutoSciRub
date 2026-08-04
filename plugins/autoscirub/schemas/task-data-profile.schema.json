@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AutoSciRub Task Data Profile",
+  "type": "object",
+  "required": ["schema_version", "files", "datasets", "relationships", "constraints", "goal_support"],
+  "properties": {
+    "schema_version": { "type": "string" },
+    "files": { "type": "array" },
+    "datasets": { "type": "array" },
+    "relationships": { "type": "array" },
+    "constraints": { "type": "array" },
+    "goal_support": { "type": "array" },
+    "dependency_notes": { "type": "array" }
+  },
+  "additionalProperties": true
+}

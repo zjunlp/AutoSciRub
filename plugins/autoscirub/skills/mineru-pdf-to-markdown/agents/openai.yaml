@@ -1,0 +1,4 @@
+interface:
+  display_name: "MinerU PDF to Markdown"
+  short_description: "Convert PDFs into Markdown with MinerU"
+  default_prompt: "Use $mineru-pdf-to-markdown to convert scientific PDFs into Markdown before reading or analyzing them."

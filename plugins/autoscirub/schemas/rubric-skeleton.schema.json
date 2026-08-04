@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AutoSciRub Rubric Skeleton",
+  "type": "object",
+  "required": ["schema_version", "source", "goals"],
+  "properties": {
+    "schema_version": { "type": "string" },
+    "task_id": { "type": "string" },
+    "source": { "const": "instruction" },
+    "goals": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["goal_id", "title", "requirement", "instruction_evidence"],
+        "properties": {
+          "goal_id": { "type": "string" },
+          "title": { "type": "string" },
+          "requirement": { "type": "string" },
+          "instruction_evidence": { "type": "array", "items": { "type": "string" } }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}

@@ -1,0 +1,20 @@
+{
+  "name": "autoscirub-local",
+  "interface": {
+    "displayName": "AutoSciRub Local"
+  },
+  "plugins": [
+    {
+      "name": "autoscirub",
+      "source": {
+        "source": "local",
+        "path": "./plugins/autoscirub"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Research"
+    }
+  ]
+}

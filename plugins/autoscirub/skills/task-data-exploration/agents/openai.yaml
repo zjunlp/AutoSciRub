@@ -1,0 +1,4 @@
+interface:
+  display_name: "Task Data Exploration"
+  short_description: "Profile task-visible data and constraints"
+  default_prompt: "Use $task-data-exploration to inspect the visible data, tools, and constraints before synthesizing criteria."

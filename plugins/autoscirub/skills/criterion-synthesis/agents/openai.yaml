@@ -1,0 +1,4 @@
+interface:
+  display_name: "Criterion Synthesis"
+  short_description: "Turn goals into executable criteria"
+  default_prompt: "Use $criterion-synthesis to convert the skeleton, literature grounding, and data profile into an executable rubric."

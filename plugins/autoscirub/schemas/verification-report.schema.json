@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AutoSciRub Verification Report",
+  "type": "object",
+  "required": ["schema_version", "round", "all_satisfied", "criteria"],
+  "properties": {
+    "schema_version": { "type": "string" },
+    "round": { "type": "integer" },
+    "all_satisfied": { "type": "boolean" },
+    "criteria": { "type": "array" },
+    "summary": { "type": "object" }
+  },
+  "additionalProperties": true
+}

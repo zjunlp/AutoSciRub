@@ -1,0 +1,4 @@
+interface:
+  display_name: "Rubric Skeleton Induction"
+  short_description: "Induce atomic goals from a research instruction"
+  default_prompt: "Use $rubric-skeleton-induction to turn this research instruction into an instruction-derived rubric skeleton."

@@ -1,0 +1,27 @@
+{
+  "name": "autoscirub",
+  "version": "0.1.0",
+  "description": "AutoSciRub skills for inducing executable scientific rubrics and guiding criterion-level research revision.",
+  "author": {
+    "name": "AutoSciRub Authors"
+  },
+  "homepage": "https://github.com/autoscirub/autoscirub",
+  "repository": "https://github.com/autoscirub/autoscirub",
+  "license": "MIT",
+  "keywords": ["scientific-research", "rubric", "agent", "verification", "revision"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "AutoSciRub",
+    "shortDescription": "Executable rubrics for scientific agents.",
+    "longDescription": "AutoSciRub turns underspecified scientific research instructions into task-specific executable rubrics, then verifies reports criterion by criterion and supports targeted revision rounds.",
+    "developerName": "AutoSciRub Authors",
+    "category": "Research",
+    "capabilities": ["Research", "Write"],
+    "defaultPrompt": [
+      "Use AutoSciRub to induce an executable rubric for this research task.",
+      "Verify this report against the AutoSciRub rubric.",
+      "Run one targeted AutoSciRub revision round."
+    ],
+    "brandColor": "#2563EB"
+  }
+}
