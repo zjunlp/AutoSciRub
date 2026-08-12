@@ -1,9 +1,19 @@
-# AutoSciRub
+<p align="center">
+  <img src="assets/logo.png" alt="AutoSciRub logo" width="360" />
+</p>
 
-> AutoSciRub turns underspecified scientific research instructions into task-specific executable rubrics, then guides execution, verification, and targeted revision.
+<h1 align="center">AutoSciRub</h1>
+
+<p align="center">
+  Learning to Evaluate Before Improving: Automatic Rubric Induction for Automatic Research Agents
+</p>
+
+<p align="center">
+  Turn underspecified scientific research instructions into executable rubrics for guided execution, verification, and targeted revision.
+</p>
 
 AutoSciRub is a plugin bundle for AI research agents. It packages the workflow from the paper
-*AutoSciRub: Automatic Rubric Induction for Scientific Agent Improvement* as installable skills
+*Learning to Evaluate Before Improving: Automatic Rubric Induction for Automatic Research Agents* as installable skills
 that work across Codex, Claude Code, and OpenClaw.
 
 ## Highlights
