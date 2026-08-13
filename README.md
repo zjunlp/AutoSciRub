@@ -16,6 +16,21 @@ AutoSciRub is a plugin bundle for AI research agents. It packages the workflow f
 *Learning to Evaluate Before Improving: Automatic Rubric Induction for Automatic Research Agents* as installable skills
 that work across Codex, Claude Code, and OpenClaw.
 
+## News
+
+**2026-08-13** — AutoSciRub achieved the **2nd-place score** on the
+[ResearchClawBench](https://github.com/InternScience/ResearchClawBench)
+[leaderboard](https://internscience.github.io/ResearchClawBench-Home/), with a
+**25.1 Pass@1** score using Codex + GPT-5.6-Terra.
+
+<p align="center">
+  <img src="assets/leaderboard.png" alt="AutoSciRub ranked second on the ResearchClawBench leaderboard" width="100%" />
+</p>
+
+<p align="center">
+  <em>ResearchClawBench leaderboard snapshot recorded on 2026-08-13 06:11 UTC.</em>
+</p>
+
 ## Highlights
 
 - **Rubric induction at inference time** — builds a goal skeleton, grounds it in literature, and
