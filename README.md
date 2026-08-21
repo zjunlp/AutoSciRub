@@ -18,10 +18,23 @@ that work across Codex, Claude Code, and OpenClaw.
 
 ## News
 
-**2026-08-13** — AutoSciRub achieved the **2nd-place score** on the
-[ResearchClawBench](https://github.com/InternScience/ResearchClawBench)
-[leaderboard](https://internscience.github.io/ResearchClawBench-Home/), with a
-**25.1 Pass@1** score using Codex + GPT-5.6-Terra.
+  **2026-08-20** — AutoSciRub achieved **1st place** on the
+  [ResearchClawBench](https://github.com/InternScience/ResearchClawBench)
+  [leaderboard](https://internscience.github.io/ResearchClawBench-Home/), with a
+  **34.2 Pass@1** score using Codex + GPT-5.6-Sol.
+
+  <p align="center">
+    <img src="assets/leaderboard.png" alt="AutoSciRub ranked first on the ResearchClawBench leaderboard" width="100%" />
+  </p>
+
+  <p align="center">
+    <em>ResearchClawBench leaderboard snapshot recorded on 2026-08-20 12:54 UTC.</em>
+  </p>
+
+  **2026-08-13** — AutoSciRub achieved **2nd place** on the
+  [ResearchClawBench](https://github.com/InternScience/ResearchClawBench)
+  [leaderboard](https://internscience.github.io/ResearchClawBench-Home/), with a
+  **25.1 Pass@1** score using Codex + GPT-5.6-Terra.
 
 <p align="center">
   <img src="assets/leaderboard.png" alt="AutoSciRub ranked second on the ResearchClawBench leaderboard" width="100%" />
