@@ -12,23 +12,31 @@
   Turn underspecified scientific research instructions into executable rubrics for guided execution, verification, and targeted revision.
 </p>
 
+<p align="center">
+  <a href="https://arxiv.org/abs/2608.31076"><img src="https://img.shields.io/badge/Paper-arXiv-b31b1b" alt="arXiv paper" /></a>
+  <a href="https://huggingface.co/papers/2608.31076"><img src="https://img.shields.io/badge/Paper-Hugging%20Face-FFD21E" alt="Hugging Face paper" /></a>
+  <img src="https://img.shields.io/badge/Framework-AutoSciRub-2563EB" alt="Framework: AutoSciRub" />
+  <img src="https://img.shields.io/badge/Hosts-Codex%20%7C%20Claude%20Code%20%7C%20OpenClaw-22A06B" alt="Hosts: Codex, Claude Code, and OpenClaw" />
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-22A06B" alt="MIT license" /></a>
+</p>
+
 AutoSciRub is a plugin bundle for AI research agents. It packages the workflow from the paper
-*Learning to Evaluate Before Improving: Automatic Rubric Induction for Automatic Research Agents* as installable skills
+[Learning to Evaluate Before Improving: Automatic Rubric Induction for Automatic Research Agents](https://arxiv.org/abs/2608.31076) as installable skills
 that work across Codex, Claude Code, and OpenClaw.
 
 ## News
 
-  **2026-08-20** — AutoSciRub achieved **1st place** on the
+  **2026-09-03** — AutoSciRub achieved a higher score on the latest
   [ResearchClawBench](https://github.com/InternScience/ResearchClawBench)
-  [leaderboard](https://internscience.github.io/ResearchClawBench-Home/), with a
-  **34.2 Pass@1** score using Codex + GPT-5.6-Sol.
+  [leaderboard](https://internscience.github.io/ResearchClawBench-Home/), reaching
+  **33.2 Pass@1** with Codex + GPT-5.6-Sol.
 
   <p align="center">
-    <img src="assets/leaderboard.png" alt="AutoSciRub ranked first on the ResearchClawBench leaderboard" width="100%" />
+    <img src="assets/leaderboard0902.png" alt="AutoSciRub on the latest ResearchClawBench leaderboard" width="100%" />
   </p>
 
   <p align="center">
-    <em>ResearchClawBench leaderboard snapshot recorded on 2026-08-20 12:54 UTC.</em>
+    <em>ResearchClawBench leaderboard snapshot recorded on 2026-09-03 04:05 UTC.</em>
   </p>
 
   **2026-08-13** — AutoSciRub achieved **2nd place** on the
@@ -57,7 +65,7 @@ Install the plugin for your agent, then open any research project and trigger Au
 ### 1. Install
 
 ```bash
-git clone https://github.com/XuehaiWang/AutoSciRub.git
+git clone https://github.com/zjunlp/AutoSciRub.git
 cd AutoSciRub
 ./scripts/install.sh codex      # or: claude, openclaw
 ```
