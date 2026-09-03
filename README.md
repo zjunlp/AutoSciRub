@@ -155,7 +155,9 @@ AutoSciRub/
 │   │   ├── targeted-revision/
 │   │   └── mineru-pdf-to-markdown/
 │   └── schemas/
-├── config/sources.example.yaml
+├── config/
+│   ├── sources.example.yaml
+│   └── sources.schema.json
 ├── scripts/
 ├── .agents/plugins/marketplace.json
 ├── .claude-plugin/marketplace.json
@@ -179,6 +181,18 @@ The bundled retrieval script reads API keys only from environment variables name
 - `MINERU_API_TOKEN` — required for high-accuracy MinerU PDF parsing
 
 arXiv is always available without a key.
+
+The example config works without extra Python packages. AutoSciRub uses PyYAML when it is available; if you use advanced YAML features such as anchors or lists of mappings, install it with `python3 -m pip install PyYAML`.
+
+Validate a config without running retrieval:
+
+```bash
+python3 plugins/autoscirub/skills/scientific-literature-grounding/scripts/retrieve_literature.py \
+  --config .autoscirub/config.yaml \
+  --validate-config
+```
+
+Invalid or missing configuration now stops immediately with a clear error instead of silently falling back to different retrieval settings. The machine-readable configuration contract is in `config/sources.schema.json`.
 
 ## Validation
 

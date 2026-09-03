@@ -40,6 +40,8 @@ Running the script is optional. You may also call the providers directly, use th
 
 If `.autoscirub/config.yaml` is absent, copy or adapt `config/sources.example.yaml` from the AutoSciRub repository. The script reads API keys only from the environment variables named in the config, such as `SEMANTIC_SCHOLAR_API_KEY`, `TAVILY_API_KEY`, and `OPENALEX_EMAIL`.
 
+Before retrieval, you can check the config without making network requests by replacing the `--goals` and `--out` arguments above with `--validate-config`. Invalid or missing config files stop with a clear error and a non-zero exit code.
+
 The script supports arXiv, OpenAlex, Semantic Scholar, and Tavily. `web` and `local_literature` are handled by the active agent harness and task-visible files.
 
 ## Per-Provider Reference

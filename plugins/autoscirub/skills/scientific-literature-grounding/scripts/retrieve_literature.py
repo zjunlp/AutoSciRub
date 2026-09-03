@@ -45,64 +45,113 @@ DEFAULT_CONFIG = {
 }
 
 
+class ConfigError(ValueError):
+    """Raised when an AutoSciRub retrieval config cannot be used safely."""
+
+
+FULL_YAML_HINT = "For advanced YAML syntax, install PyYAML: python3 -m pip install PyYAML"
+
+
 def try_load_yaml(path: Path) -> dict:
+    try:
+        text = path.read_text(encoding="utf-8")
+    except OSError as exc:
+        raise ConfigError(f"Cannot read {path}: {exc}") from exc
+
     try:
         import yaml  # type: ignore
     except ImportError:
-        return simple_yaml(path.read_text(encoding="utf-8"))
-    with path.open("r", encoding="utf-8") as f:
-        data = yaml.safe_load(f) or {}
-    return data if isinstance(data, dict) else {}
+        return simple_yaml(text)
+
+    try:
+        data = yaml.safe_load(text) or {}
+    except yaml.YAMLError as exc:
+        raise ConfigError(f"Invalid YAML in {path}: {exc}") from exc
+    if not isinstance(data, dict):
+        raise ConfigError(f"{path} must contain a YAML mapping at the top level")
+    return data
 
 
 def simple_yaml(text: str) -> dict:
-    """Minimal YAML reader for the current sources.example shape.
+    """Read the small, dependency-free YAML subset used by the example config.
 
-    Supports nesting via indentation, lists starting with '- ', and string values.
-    Falls back to DEFAULT_CONFIG on failure.
+    The fallback intentionally supports only nested mappings, scalar lists, and
+    scalar values. Unsupported YAML fails loudly instead of silently changing
+    retrieval behavior.
     """
     root: dict = {}
     stack: list[tuple[int, Any]] = [(-1, root)]
-    lines = text.splitlines()
-    for raw in lines:
+    lines: list[tuple[int, int, str]] = []
+    for line_number, raw in enumerate(text.splitlines(), start=1):
         if not raw.strip() or raw.lstrip().startswith("#"):
             continue
+        leading = raw[: len(raw) - len(raw.lstrip())]
+        if "\t" in leading:
+            raise ConfigError(f"Line {line_number}: tabs are not supported for indentation. {FULL_YAML_HINT}")
         indent = len(raw) - len(raw.lstrip(" "))
-        line = raw.strip()
+        lines.append((line_number, indent, raw.strip()))
+
+    for index, (line_number, indent, line) in enumerate(lines):
         while len(stack) > 1 and indent <= stack[-1][0]:
             stack.pop()
         parent = stack[-1][1]
+
         if line.startswith("- "):
-            value = parse_scalar(line[2:].strip())
-            if isinstance(parent, list):
-                parent.append(value)
+            if not isinstance(parent, list):
+                raise ConfigError(f"Line {line_number}: list item is not under a list key. {FULL_YAML_HINT}")
+            raw_value = line[2:].strip()
+            looks_like_mapping = bool(re.match(r"^[A-Za-z0-9_.-]+\s*:\s+", raw_value))
+            if not raw_value or looks_like_mapping:
+                raise ConfigError(f"Line {line_number}: only scalar list items are supported. {FULL_YAML_HINT}")
+            parent.append(parse_scalar(raw_value))
             continue
+
         if ":" not in line:
-            continue
+            raise ConfigError(f"Line {line_number}: expected 'key: value'. {FULL_YAML_HINT}")
+        if not isinstance(parent, dict):
+            raise ConfigError(f"Line {line_number}: mappings inside lists are not supported. {FULL_YAML_HINT}")
+
         key, _, value = line.partition(":")
         key = key.strip()
         value = value.strip()
+        if not key:
+            raise ConfigError(f"Line {line_number}: configuration key cannot be empty")
+        if key in parent:
+            raise ConfigError(f"Line {line_number}: duplicate configuration key {key!r}")
+
         if value == "":
-            new_container: Any = {}
-            if isinstance(parent, dict):
-                parent[key] = new_container
+            next_line = lines[index + 1] if index + 1 < len(lines) else None
+            is_list = bool(next_line and next_line[1] > indent and next_line[2].startswith("- "))
+            new_container: Any = [] if is_list else {}
+            parent[key] = new_container
             stack.append((indent, new_container))
         else:
-            parsed = parse_scalar(value)
-            if isinstance(parent, dict):
-                parent[key] = parsed
+            parent[key] = parse_scalar(value)
     return root
 
 
 def parse_scalar(value: str) -> Any:
-    if value in ("true", "True"):
+    lowered = value.lower()
+    if lowered == "true":
         return True
-    if value in ("false", "False"):
+    if lowered == "false":
         return False
-    if value in ("null", "None", "~"):
+    if lowered in ("null", "none", "~"):
         return None
-    if (value.startswith('"') and value.endswith('"')) or (value.startswith("'") and value.endswith("'")):
+    if value.startswith("[") or value.startswith("{"):
+        try:
+            return json.loads(value)
+        except json.JSONDecodeError as exc:
+            raise ConfigError(f"Unsupported inline YAML value {value!r}. {FULL_YAML_HINT}") from exc
+    if value.startswith('"'):
+        try:
+            return json.loads(value)
+        except json.JSONDecodeError as exc:
+            raise ConfigError(f"Invalid quoted value {value!r}") from exc
+    if value.startswith("'") and value.endswith("'"):
         return value[1:-1]
+    if value.startswith(("'", '"')) or value.endswith(("'", '"')):
+        raise ConfigError(f"Unterminated quoted value {value!r}")
     try:
         return int(value)
     except ValueError:
@@ -124,12 +173,67 @@ def deep_merge(base: dict, override: dict) -> dict:
     return result
 
 
+def validate_config(config: dict) -> dict:
+    """Validate the fields that directly control retrieval behavior."""
+    errors: list[str] = []
+
+    state_dir = config.get("state_dir")
+    if not isinstance(state_dir, str) or not state_dir.strip():
+        errors.append("state_dir must be a non-empty string")
+
+    retrieval = config.get("retrieval")
+    if not isinstance(retrieval, dict):
+        errors.append("retrieval must be a mapping")
+        retrieval = {}
+
+    enabled_sources = retrieval.get("enabled_sources")
+    if not isinstance(enabled_sources, list) or not all(isinstance(item, str) and item for item in enabled_sources):
+        errors.append("retrieval.enabled_sources must be a list of source names")
+
+    providers = retrieval.get("providers")
+    if not isinstance(providers, dict):
+        errors.append("retrieval.providers must be a mapping")
+    else:
+        for name, provider in providers.items():
+            if not isinstance(provider, dict):
+                errors.append(f"retrieval.providers.{name} must be a mapping")
+                continue
+            if "enabled" in provider and not isinstance(provider["enabled"], bool):
+                errors.append(f"retrieval.providers.{name}.enabled must be true or false")
+            for env_key in ("api_key_env", "email_env"):
+                if env_key in provider and not isinstance(provider[env_key], str):
+                    errors.append(f"retrieval.providers.{name}.{env_key} must be a string")
+
+    limits = retrieval.get("limits")
+    if not isinstance(limits, dict):
+        errors.append("retrieval.limits must be a mapping")
+    else:
+        for name, value in limits.items():
+            if isinstance(value, bool) or not isinstance(value, int) or value < 1:
+                errors.append(f"retrieval.limits.{name} must be a positive integer")
+
+    exclusions = retrieval.get("exclusions")
+    if not isinstance(exclusions, dict):
+        errors.append("retrieval.exclusions must be a mapping")
+    else:
+        for name in ("excluded_paths", "blocked_titles", "blocked_domains"):
+            value = exclusions.get(name)
+            if not isinstance(value, list) or not all(isinstance(item, str) for item in value):
+                errors.append(f"retrieval.exclusions.{name} must be a list of strings")
+
+    if errors:
+        raise ConfigError("; ".join(errors))
+    return config
+
+
 def load_config(config_path: Path | None) -> dict:
     config = json.loads(json.dumps(DEFAULT_CONFIG))
-    if config_path and config_path.exists():
+    if config_path:
+        if not config_path.is_file():
+            raise ConfigError(f"Configuration file not found: {config_path}")
         override = try_load_yaml(config_path)
         config = deep_merge(config, override)
-    return config
+    return validate_config(config)
 
 
 def get_env(name: str | None) -> str | None:
@@ -453,10 +557,21 @@ def main() -> None:
     parser.add_argument("--query", action="append", default=[], help="Direct query string (repeatable)")
     parser.add_argument("--goal-id", default="G0", help="Goal id for direct queries")
     parser.add_argument("--out", help="Output JSON path (default: .autoscirub/literature_sources.json)")
+    parser.add_argument("--validate-config", action="store_true", help="Validate the config and exit without retrieval")
     args = parser.parse_args()
 
     config_path = Path(args.config) if args.config else None
-    config = load_config(config_path)
+    try:
+        config = load_config(config_path)
+    except ConfigError as exc:
+        print(f"Configuration error: {exc}", file=sys.stderr)
+        raise SystemExit(2) from exc
+
+    if args.validate_config:
+        source = config_path if config_path else "built-in defaults"
+        print(f"configuration valid: {source}")
+        return
+
     state_dir = Path(config.get("state_dir", ".autoscirub"))
 
     goals: list[dict] = []

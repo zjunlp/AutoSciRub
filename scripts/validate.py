@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import re
+import runpy
 import sys
 from pathlib import Path
 
@@ -115,10 +116,24 @@ def validate_plugin_manifest() -> None:
 
 
 def validate_schema_files() -> None:
-    schema_dir = PLUGIN_ROOT / "schemas"
-    for schema_path in sorted(schema_dir.glob("*.json")):
-        validate_json(schema_path)
-        check_no_forbidden_text(schema_path)
+    schema_dirs = [PLUGIN_ROOT / "schemas", ROOT / "config"]
+    for schema_dir in schema_dirs:
+        for schema_path in sorted(schema_dir.glob("*.schema.json")):
+            validate_json(schema_path)
+            check_no_forbidden_text(schema_path)
+
+
+def validate_example_config() -> None:
+    retrieval_script = SKILLS_ROOT / "scientific-literature-grounding" / "scripts" / "retrieve_literature.py"
+    module = runpy.run_path(str(retrieval_script))
+    example = read_text(ROOT / "config" / "sources.example.yaml")
+    parsed = module["simple_yaml"](example)
+    config = module["deep_merge"](module["DEFAULT_CONFIG"], parsed)
+    module["validate_config"](config)
+
+    enabled_sources = parsed.get("retrieval", {}).get("enabled_sources")
+    if not isinstance(enabled_sources, list) or not enabled_sources:
+        fail("example config enabled_sources must parse as a non-empty list")
 
 
 def validate_marketplace(path: Path) -> None:
@@ -143,6 +158,7 @@ def main() -> None:
     validate_marketplace(ROOT / ".agents" / "plugins" / "marketplace.json")
     validate_marketplace(ROOT / ".claude-plugin" / "marketplace.json")
     validate_schema_files()
+    validate_example_config()
     for skill_dir in sorted(p for p in SKILLS_ROOT.iterdir() if p.is_dir()):
         validate_skill(skill_dir)
     print("validation ok")
