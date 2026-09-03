@@ -24,6 +24,9 @@ AutoSciRub is a plugin bundle for AI research agents. It packages the workflow f
 [Learning to Evaluate Before Improving: Automatic Rubric Induction for Automatic Research Agents](https://arxiv.org/abs/2608.31076) as installable skills
 that work across Codex, Claude Code, and OpenClaw.
 
+The trajectories, reports, and evaluation records from our main ResearchClawBench experiments are
+available on [Hugging Face](https://huggingface.co/datasets/huminclu/autoscirub-rcb-main-exp).
+
 ## News
 
   **2026-09-03** — AutoSciRub achieved a higher score on the latest
