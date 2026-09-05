@@ -295,18 +295,18 @@ or live provider availability.
 
 ## Citation
 
-If you use AutoSciRub in your research, please cite:
+If you use AutoSciRub in your research, please cite our [paper](https://arxiv.org/abs/2608.31076):
 
 ```bibtex
 @article{autoscirub,
   title={Learning to Evaluate Before Improving: Automatic Rubric Induction for Automatic Research Agents},
-  author={Wang, Xuehai and Qin, Haowei and Liu, Tongxin and Li, Junkai and Xu, Buqiang and others},
-  journal={arXiv preprint},
-  year={2026}
+  author={Wang, Xuehai and Qin, Haowei and Liu, Tongxin and Li, Junkai and Xu, Buqiang and Zhang, Jintian and Chen, Yijun and Xue, Zirui and Deng, Shumin},
+  journal={arXiv preprint arXiv:2608.31076},
+  year={2026},
+  doi={10.48550/arXiv.2608.31076},
+  url={https://arxiv.org/abs/2608.31076}
 }
 ```
-
-Replace the entry with the final citation once the paper is published.
 
 ## License
 
