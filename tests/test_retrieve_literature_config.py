@@ -19,6 +19,22 @@ M = runpy.run_path(str(SCRIPT))
 G = M["main"].__globals__
 
 
+@contextlib.contextmanager
+def aliased_project_directory():
+    """Exercise path aliases on Linux too, not only macOS/Windows temp paths."""
+    with tempfile.TemporaryDirectory() as temp:
+        project = Path(temp) / "project"
+        project.mkdir()
+        alias = Path(temp) / "project-alias"
+        try:
+            alias.symlink_to(project, target_is_directory=True)
+        except OSError:
+            # Windows may prohibit symlinks; its temp path can still be an 8.3 alias.
+            yield str(project)
+        else:
+            yield str(alias)
+
+
 class ConfigTests(unittest.TestCase):
     def test_comments_quotes_inline_lists_and_anchors(self):
         parsed = M["read_yaml"]('state_dir: &state "results#one"\nretrieval:\n'
@@ -75,16 +91,16 @@ class ConfigTests(unittest.TestCase):
                 M["dependencies"]()
 
     def test_config_discovery_and_state_precedence(self):
-        with tempfile.TemporaryDirectory() as temp:
+        with aliased_project_directory() as temp:
             project = Path(temp)
             (project / ".autoscirub").mkdir()
             (project / ".autoscirub/config.yaml").write_text("state_dir: from-config\n", encoding="utf-8")
             with patch.dict(os.environ, {}, clear=True):
-                self.assertEqual(M["load_config"](project=project)["state_dir"], str(project / "from-config"))
+                self.assertEqual(M["load_config"](project=project)["state_dir"], str((project / "from-config").resolve()))
                 with patch.dict(os.environ, {"AUTOSCIRUB_STATE_DIR": "from-env"}):
-                    self.assertEqual(M["load_config"](project=project)["state_dir"], str(project / "from-env"))
+                    self.assertEqual(M["load_config"](project=project)["state_dir"], str((project / "from-env").resolve()))
                     self.assertEqual(M["load_config"](project=project, state_dir="from-cli")["state_dir"],
-                                     str(project / "from-cli"))
+                                     str((project / "from-cli").resolve()))
             with self.assertRaisesRegex(M["ConfigError"], "not found"):
                 M["load_config"](project / "absent.yaml", project=project)
 
@@ -245,7 +261,7 @@ class CLIIntegrationTests(unittest.TestCase):
 
     def test_mineru_resolves_config_env_and_explicit_destination(self):
         mineru = runpy.run_path(str(ROOT / "plugins/autoscirub/skills/mineru-pdf-to-markdown/scripts/mineru_pdf_to_markdown.py"))
-        with tempfile.TemporaryDirectory() as temp:
+        with aliased_project_directory() as temp:
             project = Path(temp)
             (project / "paper.pdf").write_bytes(b"test fixture, no upload")
             (project / ".autoscirub").mkdir()
@@ -263,7 +279,7 @@ class CLIIntegrationTests(unittest.TestCase):
                      patch.object(sys, "argv", ["mineru", "--project", temp, *extra, "paper.pdf"]), \
                      contextlib.redirect_stdout(io.StringIO()):
                     self.assertEqual(mineru["main"](), 0)
-                self.assertEqual(called, [str(expected)])
+                self.assertEqual(called, [str(expected.resolve())])
 
 
 if __name__ == "__main__":
