@@ -11,6 +11,8 @@ Transform an underspecified research instruction into a compact set of atomic sc
 
 At this stage, define what the task should address. Do not decide how to prove it.
 
+All `.autoscirub/` paths below refer to the state directory resolved by the controller. When invoked alone, use the user’s override, then `AUTOSCIRUB_STATE_DIR`, then project config `state_dir`, then `.autoscirub/`.
+
 ## Inputs
 
 Use only the research instruction from the user or a user-specified instruction file. If no explicit file is provided, inspect obvious project-level instruction files only when present.
@@ -45,12 +47,12 @@ Use this shape:
 2. Split compound requirements into atomic goals only when separate evidence will be needed.
 3. Assign stable goal ids `G1`, `G2`, ... in task-logical order.
 4. Preserve traceability by recording the instruction phrase or paraphrase that supports each goal.
-5. Keep the skeleton small enough to guide execution, usually 3 to 7 goals.
+5. Keep the skeleton small enough to guide execution, with no minimum goal count. A simple task may need only one or two.
 
 ## Rules
 
 - Keep goals literal, task-oriented, and non-overlapping.
-- Do not add specific methods, metrics, baselines, statistical tests, plots, expected results, or paper-specific claims.
+- Preserve methods, metrics, baselines, figures, numerical constraints, and comparisons explicitly required by the user. Do not invent additional ones at this stage.
 - Do not add a goal unless it is supported by the instruction.
 - Keep goals broad enough for later literature grounding and criterion synthesis.
 - If the instruction is ambiguous, record the conservative interpretation rather than expanding the task scope.

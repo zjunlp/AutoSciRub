@@ -1,0 +1,6 @@
+retrieval:
+  enabled_sources: [local_literature]
+  local_literature:
+    paths: [papers]
+  exclusions:
+    excluded_paths: [papers/excluded]

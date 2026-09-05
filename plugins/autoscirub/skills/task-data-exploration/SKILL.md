@@ -11,6 +11,8 @@ Profile the task-visible environment without running full experiments. This impl
 
 The profile determines which literature-suggested analyses are feasible with the current files, tools, labels, and compute context.
 
+All `.autoscirub/` paths below refer to the state directory resolved by the controller. When invoked alone, use the user’s override, then `AUTOSCIRUB_STATE_DIR`, then project config `state_dir`, then `.autoscirub/`.
+
 ## Inputs
 
 Read:

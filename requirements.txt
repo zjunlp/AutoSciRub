@@ -1,0 +1,1 @@
+-r plugins/autoscirub/skills/scientific-literature-grounding/requirements.txt

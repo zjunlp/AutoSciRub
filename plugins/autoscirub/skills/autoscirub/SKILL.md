@@ -21,7 +21,7 @@ AutoSciRub creates a task-specific executable rubric at inference time, then use
 
 ## State Contract
 
-Use the current project as the task root. Store framework state in `.autoscirub/` unless the user or environment sets `AUTOSCIRUB_STATE_DIR`.
+Use the current project as the task root. Resolve the state directory once: explicit user choice, then `AUTOSCIRUB_STATE_DIR`, then `state_dir` in project `.autoscirub/config.yaml`, then `.autoscirub/`. All relative paths are relative to the research project. Throughout this skill and its child skills, replace `.autoscirub/` output paths with that resolved directory.
 
 Expected files:
 
@@ -29,6 +29,7 @@ Expected files:
 .autoscirub/
   run_manifest.json
   rubric_skeleton.json
+  literature_sources.json       # when bundled retrieval is used
   literature_grounding.json
   task_data_profile.json
   executable_rubric.json
@@ -55,13 +56,14 @@ Treat profiles as constraints injected by the harness, not as built-in assumptio
 
 ## Workflow
 
+0. Establish the user’s requested boundary (rubric only, verification only, or execution). Reuse valid artifacts for the same task; do not regenerate them just because the workflow starts here. At the start and end, write `run_manifest.json` with task summary, resolved state directory, requested boundary, current stage, status (`running`, `completed`, `blocked`, or `budget_exhausted`), revision limit, completed rounds, and artifact paths. Treat this as a progress record, not proof that outputs are valid.
 1. Run `rubric-skeleton-induction` using only the instruction. Write `.autoscirub/rubric_skeleton.json`.
 2. Run `scientific-literature-grounding` using the skeleton and task-visible literature/search. Write `.autoscirub/literature_grounding.json`.
 3. Run `task-data-exploration` using lightweight inspection of visible data and tools. Write `.autoscirub/task_data_profile.json`.
 4. Run `criterion-synthesis` to combine goals, literature grounding, and data feasibility. Write `.autoscirub/executable_rubric.json`.
 5. Execute the research task against the executable rubric. Produce the report and supporting code/results in project-appropriate locations.
 6. Run `criterion-level-verification` against the current artifact. Write `.autoscirub/verification_report.json` or a round-specific verification file.
-7. If criteria fail and revision budget remains, run `targeted-revision` for exactly one revision round, then verify again if requested.
+7. For an authorized full workflow, use the user’s revision limit or `workflow.max_revision_rounds` (default 1). After each `targeted-revision` round, rerun verification on the changed artifacts. Stop when all criteria pass, the budget is exhausted, or remaining gaps need unavailable inputs. Standalone verification never authorizes revision.
 
 ## Execution Rules
 
@@ -71,8 +73,10 @@ Treat profiles as constraints injected by the harness, not as built-in assumptio
 - Do not invent labels, measurements, target values, hidden files, or unavailable resources.
 - Do not hard-code virtual environments, dependency managers, API providers, model names, or machine paths.
 - Use the user's active environment and agent-native tools unless the user provides a different setup.
+- Tell the user which stage is running and where its results are saved. At handoff, name the report, evidence, failed criteria, and next actionable step.
+- For a small task, keep goals and criteria correspondingly small; numerical size suggestions in child skills are not quotas.
 - Stop after the requested boundary: induction only, execution only, verification only, or one revision round.
 
 ## Completion Criteria
 
-AutoSciRub is complete for a task when either all executable-rubric criteria are satisfied by generated evidence, or the revision budget is exhausted with a clear verification report and remaining evidence gaps.
+For rubric-only work, completion is the requested rubric artifact. For verification-only work, completion is a truthful verification report, even if criteria fail. For full execution, report success only when all in-scope criteria pass; budget exhaustion or missing inputs must remain explicit and must not be relabelled as scientific success.

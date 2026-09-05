@@ -108,6 +108,10 @@ def validate_plugin_manifest() -> None:
     if "hooks" in manifest:
         fail("codex manifest must not include hooks")
     check_no_forbidden_text(PLUGIN_ROOT / ".codex-plugin" / "plugin.json")
+    claude = validate_json(PLUGIN_ROOT / ".claude-plugin" / "plugin.json")
+    for field in ("name", "version", "homepage", "repository", "skills"):
+        if claude.get(field) != manifest.get(field):
+            fail(f"plugin manifests disagree on {field}")
 
     interface = manifest["interface"]
     for key in ["displayName", "shortDescription", "longDescription", "developerName", "category", "defaultPrompt"]:
@@ -116,10 +120,12 @@ def validate_plugin_manifest() -> None:
 
 
 def validate_schema_files() -> None:
-    schema_dirs = [PLUGIN_ROOT / "schemas", ROOT / "config"]
+    from jsonschema import Draft202012Validator
+    schema_dirs = [PLUGIN_ROOT / "schemas", ROOT / "config",
+                   SKILLS_ROOT / "scientific-literature-grounding/references"]
     for schema_dir in schema_dirs:
         for schema_path in sorted(schema_dir.glob("*.schema.json")):
-            validate_json(schema_path)
+            Draft202012Validator.check_schema(validate_json(schema_path))
             check_no_forbidden_text(schema_path)
 
 
@@ -127,9 +133,10 @@ def validate_example_config() -> None:
     retrieval_script = SKILLS_ROOT / "scientific-literature-grounding" / "scripts" / "retrieve_literature.py"
     module = runpy.run_path(str(retrieval_script))
     example = read_text(ROOT / "config" / "sources.example.yaml")
-    parsed = module["simple_yaml"](example)
+    parsed = module["read_yaml"](example)
     config = module["deep_merge"](module["DEFAULT_CONFIG"], parsed)
     module["validate_config"](config)
+    module["validate_config"](parsed)
 
     enabled_sources = parsed.get("retrieval", {}).get("enabled_sources")
     if not isinstance(enabled_sources, list) or not enabled_sources:
@@ -145,6 +152,12 @@ def validate_marketplace(path: Path) -> None:
     entry = marketplace["plugins"][0]
     if entry.get("name") != "autoscirub":
         fail(f"{path} plugin entry must be autoscirub")
+    if path.parent.name == ".claude-plugin":
+        if not marketplace.get("owner", {}).get("name"):
+            fail("Claude marketplace requires an owner")
+        if entry.get("source") != "./plugins/autoscirub":
+            fail("Claude marketplace source must be relative to the repository root")
+        return
     policy = entry.get("policy") or {}
     for key in ["installation", "authentication"]:
         if key not in policy:

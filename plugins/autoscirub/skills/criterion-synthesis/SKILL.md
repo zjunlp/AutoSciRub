@@ -11,6 +11,8 @@ Combine instruction goals, scientific practice, and task-data feasibility into a
 
 The rubric is the contract for execution, verification, and revision.
 
+All `.autoscirub/` paths below refer to the state directory resolved by the controller. When invoked alone, use the user’s override, then `AUTOSCIRUB_STATE_DIR`, then project config `state_dir`, then `.autoscirub/`.
+
 ## Inputs
 
 Read:
@@ -66,7 +68,7 @@ Write `.autoscirub/executable_rubric.json`:
 
 ## Procedure
 
-1. Preserve every skeleton goal unless task-visible data proves it impossible.
+1. Preserve every instruction-derived goal. If required inputs are missing, retain the goal and record the blocker; do not silently remove the user’s requirement.
 2. Select feasible analyses that best satisfy each goal using literature-grounded practice.
 3. Convert each requirement into a criterion with observable evidence and a satisfaction condition.
 4. Link each criterion to goals, data sources, artifacts, and provenance.
@@ -77,5 +79,6 @@ Write `.autoscirub/executable_rubric.json`:
 - Prefer criteria that can be checked against code, results, figures, tables, files, or report text.
 - Use direct task data when available; only allow surrogate analyses when the data profile justifies them.
 - Avoid generic criteria such as "analyze thoroughly" or "discuss results".
-- Do not require unavailable labels, tools, target answers, or external private data.
-- Keep the rubric compact enough to execute, usually 6 to 15 criteria.
+- Do not introduce requirements for unavailable labels, tools, or private data. If the user explicitly requires an unavailable input, retain that requirement as blocked and explain what is needed.
+- Define satisfaction by correctness of the method and evidence, not agreement with a desired result. Negative or inconclusive findings can satisfy an appropriately framed research question.
+- Keep the rubric compact enough to execute, without a fixed minimum number of criteria.

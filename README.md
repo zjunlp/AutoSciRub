@@ -63,183 +63,235 @@ available on [Hugging Face](https://huggingface.co/datasets/huminclu/autoscirub-
 
 ## Quick Start
 
-Install the plugin for your agent, then open any research project and trigger AutoSciRub.
+Requires **Python 3.10+** and a research agent (Codex, Claude Code, or OpenClaw).
+AutoSciRub's scripts prepare and inspect a project; your agent performs the research.
 
-### 1. Install
+### 1. Set up once
+
+Linux / macOS:
 
 ```bash
 git clone https://github.com/zjunlp/AutoSciRub.git
 cd AutoSciRub
-./scripts/install.sh codex      # or: claude, openclaw
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+python scripts/install.py codex  # or: claude, openclaw
 ```
 
-### 2. Start from any project directory
+Windows PowerShell:
+
+```powershell
+git clone https://github.com/zjunlp/AutoSciRub.git
+cd AutoSciRub
+py -3 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+.\.venv\Scripts\python.exe scripts/install.py codex
+```
+
+Use this Python environment when running the helpers. In PowerShell, replace
+`python` below with `.\.venv\Scripts\python.exe` if you have not activated it.
+
+### 2. Check the offline example
 
 ```bash
-cd my-research-project
+python scripts/autoscirub.py demo --project ./autoscirub-demo
 ```
 
-### 3. Try one of these prompts
+No model, API key, PDF upload, or external query is used. The demo copies a tiny
+synthetic task into a new directory and checks that exactly one allowed local
+document is indexed while the excluded folder is omitted. It is a setup check,
+not a claim that an agent has completed the scientific task.
 
-Full workflow:
+To try the complete workflow, open your agent in `autoscirub-demo/`
+and ask: **“Use AutoSciRub to complete INSTRUCTIONS.md using local files only.”**
+The sample explains its expected numerical results in
+[examples/minimal/README.md](examples/minimal/README.md).
 
-> Use AutoSciRub end-to-end on this research task: induce the rubric, guide execution, verify
-> the result criterion by criterion, and run targeted revision rounds until the rubric is
-> satisfied or the revision budget is reached.
+### 3. Use your own project
 
-Rubric only:
-
-> Use AutoSciRub to induce an executable rubric for this task. Stop after criterion synthesis.
-
-Verification only:
-
-> Verify this report against the AutoSciRub executable rubric and write a verification report.
-
-AutoSciRub stores its state in `.autoscirub/` inside the current project.
-
-## Installation
-
-### Codex
+Run these commands from the AutoSciRub checkout:
 
 ```bash
-./scripts/install.sh codex
+python scripts/autoscirub.py init --project /path/to/my-research
+python scripts/autoscirub.py doctor --project /path/to/my-research
 ```
 
-Or manually:
+On Windows use a quoted Windows project path. `init` creates a config without
+overwriting an existing one; it does not copy or alter your research data.
+
+Open a new agent session in your research project, using the Python environment
+above if you want the bundled helpers, and give it a concrete instruction:
+
+> Use AutoSciRub to compare treatment and control in data/measurements.csv.
+> Save the analysis code, a results table, and a short report. Use local sources
+> from papers/ and perform at most one revision round.
+
+Other supported scopes:
+
+- **Rubric only:** “Use AutoSciRub to make an executable rubric for this task. Stop before experiments.”
+- **Verification only:** “Verify report.md against the existing AutoSciRub rubric. Do not revise it.”
+
+## Installation and updates
+
+The installer copies **all eight skills and their bundled resources** into the
+platform's personal skill directory. It does not register a marketplace or run
+the agent. These directories follow the platform documentation:
+
+| Platform | Personal directory | Documentation |
+| --- | --- | --- |
+| Codex | `.agents/skills` under your user directory | [Codex skills](https://learn.chatgpt.com/docs/build-skills) |
+| Claude Code | `.claude/skills` under your user directory | [Claude skills](https://code.claude.com/docs/en/skills) |
+| OpenClaw | `.openclaw/skills` under your user directory | [OpenClaw skills](https://docs.openclaw.ai/tools/skills) |
+
+Preview or check an installation:
 
 ```bash
-codex plugin marketplace add /path/to/AutoSciRub/.agents/plugins
-codex plugin add autoscirub@autoscirub-local
+python scripts/install.py codex --dry-run
+python scripts/install.py codex --check
 ```
 
-### Claude Code
+`--check` verifies the installed files against this checkout. To verify
+actual discovery, open a new agent session and ask it to list the AutoSciRub
+skills. Agent policy or workspace-level overrides can still affect availability.
 
-```bash
-./scripts/install.sh claude
-```
+After updating your checkout, rerun the installer. Identical files are left
+alone. Previously installed, unmodified skills are updated; locally edited or
+unmanaged same-name skills cause an actionable error before any skill is changed.
+For a custom location, use `--skills-dir` and configure your agent to load it.
 
-Or manually:
+The existing Bash and PowerShell wrappers call the same installer:
+`./scripts/install.sh codex` or `.scriptsinstall.ps1 codex`.
+PowerShell also accepts `-Check`, `-DryRun`, and `-SkillsDir`.
 
-```bash
-claude plugin marketplace add /path/to/AutoSciRub
-claude plugin install autoscirub@autoscirub-local
-```
-
-### OpenClaw
-
-```bash
-./scripts/install.sh openclaw
-```
-
-OpenClaw falls back to installing individual skills if the plugin marketplace path is not
-accepted.
-
-## Workflow
-
-AutoSciRub runs in six stages, each with its own skill and state file.
-
-1. **Rubric Skeleton Induction** — extract atomic scientific goals from the instruction.
-2. **Scientific Literature Grounding** — ground each goal in methods, metrics, baselines, and
-   evidence forms from the literature.
-3. **Task-Data Exploration** — profile the visible data, tools, and constraints to judge
-   feasibility.
-4. **Criterion Synthesis** — combine goals, literature, and data into an executable rubric.
-5. **Criterion-Level Verification** — check the generated artifact against each criterion.
-6. **Targeted Revision** — address failed criteria and produce an updated artifact.
-
-The top-level `autoscirub` skill orchestrates the full pipeline.
-
-## Layout
-
-```text
-AutoSciRub/
-├── plugins/autoscirub/
-│   ├── .codex-plugin/plugin.json
-│   ├── .claude-plugin/plugin.json
-│   ├── skills/
-│   │   ├── autoscirub/
-│   │   ├── rubric-skeleton-induction/
-│   │   ├── scientific-literature-grounding/
-│   │   ├── task-data-exploration/
-│   │   ├── criterion-synthesis/
-│   │   ├── criterion-level-verification/
-│   │   ├── targeted-revision/
-│   │   └── mineru-pdf-to-markdown/
-│   └── schemas/
-├── config/
-│   ├── sources.example.yaml
-│   └── sources.schema.json
-├── scripts/
-├── .agents/plugins/marketplace.json
-├── .claude-plugin/marketplace.json
-├── LICENSE
-└── README.md
-```
+Existing marketplace users may continue using the plugin package. Avoid enabling
+both that plugin and the personal copies simultaneously. The manifests remain in
+`plugins/autoscirub/`; the personal-skill installer does not update an existing
+plugin cache.
 
 ## Configuration
 
-Copy the example config into your project to customize retrieval sources, limits, and exclusions:
+`init` creates `PROJECT/.autoscirub/config.yaml`. YAML is parsed with PyYAML;
+the same JSON Schema validates both partial overrides and the resolved settings.
+Comments, quoted strings, lists, and anchors are supported. Duplicate keys,
+unknown fields, misspelled provider names, and invalid types fail before retrieval.
+YAML merge keys that create duplicate keys are rejected; use explicit sections.
 
-```bash
-cp config/sources.example.yaml .autoscirub/config.yaml
+For local-only work, a complete minimal config is:
+
+```yaml
+retrieval:
+  enabled_sources: [local_literature]
+  local_literature:
+    paths: [papers]
+  exclusions:
+    excluded_paths: [papers/private]
 ```
 
-The bundled retrieval script reads API keys only from environment variables named in the config:
+Local inputs and exclusions are exact files or directories, not glob patterns.
+Directories are searched recursively; excluded subtrees and links to excluded
+files are omitted. Local indexing provides filenames and paths, not full-text
+search or scientific relevance ranking. It does not upload documents.
 
-- `OPENALEX_EMAIL` — optional, for the OpenAlex polite pool
-- `SEMANTIC_SCHOLAR_API_KEY` — optional, raises rate limits
-- `TAVILY_API_KEY` — required to enable Tavily
-- `MINERU_API_TOKEN` — required for high-accuracy MinerU PDF parsing
+Path rules:
 
-arXiv is always available without a key.
-
-The example config works without extra Python packages. AutoSciRub uses PyYAML when it is available; if you use advanced YAML features such as anchors or lists of mappings, install it with `python3 -m pip install PyYAML`.
-
-Validate a config without running retrieval:
-
-```bash
-python3 plugins/autoscirub/skills/scientific-literature-grounding/scripts/retrieve_literature.py \
-  --config .autoscirub/config.yaml \
-  --validate-config
-```
-
-Invalid or missing configuration now stops immediately with a clear error instead of silently falling back to different retrieval settings. The machine-readable configuration contract is in `config/sources.schema.json`.
-
-## Validation
-
-Validate the plugin package and all skills:
+- `--project` selects the research root; otherwise the current directory is used.
+- With no `--config`, read `PROJECT/.autoscirub/config.yaml` if it exists.
+- An explicit `--config` path is relative to the shell's current directory.
+- All paths *inside* the config are relative to the research root, not the config file.
+- State directory precedence: `--state-dir` → `AUTOSCIRUB_STATE_DIR` → config `state_dir` → `.autoscirub`.
+- Retrieval output defaults to `STATE/literature_sources.json`; `--out` overrides it.
+- MinerU output defaults to `STATE/cache/mineru/`; its `--output-dir` overrides it.
+- AutoSciRub skills use the same resolved state directory. Reports, code, and
+  scientific results stay in the locations agreed with the user.
 
 ```bash
-python3 scripts/validate.py
+python scripts/autoscirub.py config validate --project /path/to/my-research
+python scripts/autoscirub.py retrieve --project /path/to/my-research --query "research question"
 ```
 
-This checks:
+Use repeatable `--query` arguments for separate queries, or `--goals` for a
+rubric skeleton. Run `retrieve --help` for the complete options.
+The original skill script remains directly executable.
 
-- plugin manifest shape
-- marketplace entries
-- skill frontmatter and naming
-- no hard-coded absolute paths or legacy benchmark names
-- JSON schema files are valid
+Full defaults: [config/sources.example.yaml](config/sources.example.yaml).
+The editor-facing [config/sources.schema.json](config/sources.schema.json) points
+to the canonical schema bundled with the retrieval skill.
 
-## State Contract
+### Network services
 
-AutoSciRub writes all framework state into `.autoscirub/` in the current project by default.
-Override with the `AUTOSCIRUB_STATE_DIR` environment variable.
+The default config enables arXiv, OpenAlex, Semantic Scholar, and local indexing.
+Tavily is opt-in: add it to `enabled_sources` and set its provider `enabled: true`.
+Credentials are read only from environment variables:
 
-Key files:
-
-| File | Purpose |
+| Variable | Purpose |
 | --- | --- |
-| `run_manifest.json` | run metadata |
-| `rubric_skeleton.json` | instruction-derived goals |
-| `literature_sources.json` | normalized retrieval results |
-| `literature_grounding.json` | per-goal methods, metrics, evidence forms |
-| `task_data_profile.json` | visible data and feasibility notes |
-| `executable_rubric.json` | synthesized verification criteria |
-| `verification_report.json` | per-criterion pass/fail and gaps |
-| `revisions/round-NNN/` | revision-round artifacts |
+| `OPENALEX_EMAIL` | OpenAlex contact email |
+| `OPENALEX_API_KEY` | OpenAlex access, when required by the service |
+| `SEMANTIC_SCHOLAR_API_KEY` | Semantic Scholar authentication/rate allowance |
+| `TAVILY_API_KEY` | Required for Tavily |
+| `MINERU_API_TOKEN` | MinerU standard API |
 
-JSON schemas live in `plugins/autoscirub/schemas/`.
+Remote retrieval sends query text to the selected providers. MinerU is a separate,
+optional converter that uploads input documents; leave it disabled for local-only
+work. API access, rates, and costs are controlled by those services. `web`
+means the agent's native web search, not an implemented provider in this script.
+
+## Progress and troubleshooting
+
+The retriever prints each source's progress and saves structured `provider_results`.
+
+| Situation | Behavior / next step |
+| --- | --- |
+| Invalid configuration | Exit 2 with the field to correct; no requests made |
+| Missing Python dependency | Install `requirements.txt` using the same Python executable |
+| Missing local document | Check project-relative `local_literature.paths`; shown as a failed source |
+| Missing required key | Source skipped with the variable name to set |
+| Successful query, no usable results | Status `empty`, exit 0; try broader terms or local papers |
+| Some sources fail | Status `partial`, exit 0; available sources retained with failure details |
+| Every source fails or none can run | Exit 3; write `literature_sources.failure.json`, preserving the previous index |
+| HTTP 401 / 403 / 429 | Check provider access or rate allowance; no automatic unbounded retries |
+| Skill not available in agent | Run install `--check`, restart the agent, inspect its local skill settings |
+| Installer detects local edits | Preserve your changes or choose a different configured skill directory |
+
+A default request can wait up to 30 seconds before a network timeout. This version
+uses sequential requests and reports progress; it does not automatically retry or
+resume requests. `doctor` checks local configuration, dependencies, paths,
+and environment-variable presence without making paid requests or testing keys.
+
+## Workflow and state
+
+The controller performs seven steps: instruction goals, literature grounding,
+data exploration, criterion synthesis, research execution, criterion verification,
+and bounded revision. The agent runs the scientific experiments; the CLI does not
+replace it. Simple tasks need only a few goals and criteria, not a fixed quota.
+
+The default revision limit is one round (`workflow.max_revision_rounds`).
+Every full-workflow revision is followed by verification. Missing inputs remain
+explicit unmet requirements; `all_satisfied` cannot be true while any
+in-scope criterion is unmet. Verification-only requests never authorize edits.
+
+Framework state includes:
+
+- `run_manifest.json`: controller-maintained task, stage, budget, and output locations.
+- `rubric_skeleton.json`, `literature_grounding.json`, `task_data_profile.json`,
+  and `executable_rubric.json`: planning and evidence contracts.
+- `literature_sources.json`: optional helper-generated retrieval index.
+- `verification_report.json` and `revisions/round-NNN/`: checks and revisions.
+- `cache/mineru/`: optional converted literature.
+
+## Development checks
+
+```bash
+python -m pip install -r requirements.txt
+python scripts/validate.py
+python -m unittest discover -s tests -v
+```
+
+Tests use local fixtures and mocked network responses. GitHub Actions runs them
+on Linux, macOS, and Windows with Python 3.10 and 3.12, plus Bash and PowerShell
+installer smoke checks. They verify helper behavior, not model reasoning quality
+or live provider availability.
 
 ## Citation
 

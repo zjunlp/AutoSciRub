@@ -11,6 +11,8 @@ Check whether the current research artifact satisfies each executable-rubric cri
 
 Verification diagnoses omissions; it does not edit the report or run a revision.
 
+All `.autoscirub/` paths below refer to the state directory resolved by the controller. When invoked alone, use the user’s override, then `AUTOSCIRUB_STATE_DIR`, then project config `state_dir`, then `.autoscirub/`.
+
 ## Inputs
 
 Read:
@@ -61,4 +63,4 @@ Write `.autoscirub/verification_report.json` or a round-specific file under `.au
 
 ## Pass Standard
 
-Set `all_satisfied` to true only when every high-priority and required criterion is satisfied, and any medium/low unsatisfied criteria are explicitly justified by the rubric or user scope.
+Set `all_satisfied` to true only when every criterion in the agreed rubric is satisfied. Count all passed and failed criteria in the summary. Missing inputs and honest limitations remain unmet criteria, not passes. If the user changes the scope, record that change in the rubric before verifying; do not waive requirements unilaterally.

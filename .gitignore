@@ -1,5 +1,6 @@
 # Runtime state
 .autoscirub/
+autoscirub-demo/
 
 # Python
 __pycache__/

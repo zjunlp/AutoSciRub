@@ -11,6 +11,8 @@ Use failed criteria and diagnoses to revise the current artifact once. This impl
 
 This skill performs one bounded revision round. Run verification again only when the user or controller requests it.
 
+All `.autoscirub/` paths below refer to the state directory resolved by the controller. When invoked alone, use the user’s override, then `AUTOSCIRUB_STATE_DIR`, then project config `state_dir`, then `.autoscirub/`.
+
 ## Inputs
 
 Read:

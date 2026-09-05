@@ -1,20 +1,17 @@
 {
   "name": "autoscirub-local",
-  "interface": {
-    "displayName": "AutoSciRub Local"
+  "metadata": {
+    "description": "AutoSciRub scientific research skills."
+  },
+  "owner": {
+    "name": "AutoSciRub Authors"
   },
   "plugins": [
     {
       "name": "autoscirub",
-      "source": {
-        "source": "local",
-        "path": "./plugins/autoscirub"
-      },
-      "policy": {
-        "installation": "AVAILABLE",
-        "authentication": "ON_INSTALL"
-      },
-      "category": "Research"
+      "source": "./plugins/autoscirub",
+      "description": "Executable scientific rubrics and criterion-level research revision.",
+      "category": "research"
     }
   ]
 }

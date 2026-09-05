@@ -1,6 +1,6 @@
 ---
 name: scientific-literature-grounding
-description: Ground an AutoSciRub rubric skeleton in scientific literature and authoritative documentation. Use after rubric_skeleton.json exists when Codex needs goal-centered methods, protocols, metrics, baselines, controls, robustness checks, and evidence forms from task-visible papers, public literature, datasets, benchmarks, repositories, or documentation.
+description: Ground an AutoSciRub rubric skeleton in scientific literature and authoritative documentation. Use after rubric_skeleton.json exists when a research agent needs goal-centered methods, protocols, metrics, baselines, controls, robustness checks, and evidence forms from task-visible papers, public literature, datasets, benchmarks, repositories, or documentation.
 ---
 
 # Scientific Literature Grounding
@@ -10,6 +10,8 @@ description: Ground an AutoSciRub rubric skeleton in scientific literature and a
 Map each induced scientific goal to established scientific practice. This implements `phi_lit(g_{i,k}; L_i)` from AutoSciRub.
 
 The output should help decide what evidence is scientifically appropriate. It is not a literature review for the final report.
+
+All `.autoscirub/` paths below refer to the state directory resolved by the controller. When invoked alone, use the user’s override, then `AUTOSCIRUB_STATE_DIR`, then project config `state_dir`, then `.autoscirub/`.
 
 ## Inputs
 
@@ -27,75 +29,34 @@ If PDFs are important and Markdown is unavailable, use an available PDF-to-Markd
 
 ## Retrieval Script
 
-A bundled script is available at `$scientific-literature-grounding/scripts/retrieve_literature.py`. Use it when you want a single normalized source index instead of assembling results manually:
+Resolve `scripts/retrieve_literature.py` relative to this installed skill's directory, using the location supplied by the active agent. Do not guess a `codex skill path` command. Run from the research project, or pass `--project`.
+
+For users working from the AutoSciRub checkout, the short entry point is:
 
 ```bash
-python "$(codex skill path scientific-literature-grounding 2>/dev/null || echo .)"/scripts/retrieve_literature.py \
-  --config .autoscirub/config.yaml \
-  --goals .autoscirub/rubric_skeleton.json \
-  --out .autoscirub/literature_sources.json
+python scripts/autoscirub.py retrieve --project /path/to/project --query "research question"
 ```
 
-Running the script is optional. You may also call the providers directly, use the agent harness's native web search, or mix both approaches.
+For an installed skill, run its resolved script path with `--goals` pointing to the rubric skeleton. Omit `--config` to read project `.autoscirub/config.yaml` automatically. Omit `--out` to write the source index under the resolved state directory. Pass `--validate-config` for a local check. If dependencies are missing, follow the script's installation hint in the user's active Python environment.
 
-If `.autoscirub/config.yaml` is absent, copy or adapt `config/sources.example.yaml` from the AutoSciRub repository. The script reads API keys only from the environment variables named in the config, such as `SEMANTIC_SCHOLAR_API_KEY`, `TAVILY_API_KEY`, and `OPENALEX_EMAIL`.
+The script handles arXiv, OpenAlex, Semantic Scholar, Tavily, and local document indexing. `web` is an explicit handoff to the agent's native search, not a built-in provider. Provider credentials come only from the environment variables named in config.
 
-Before retrieval, you can check the config without making network requests by replacing the `--goals` and `--out` arguments above with `--validate-config`. Invalid or missing config files stop with a clear error and a non-zero exit code.
+- Local documents: configure `retrieval.local_literature.paths`; paths are project-relative. Apply `excluded_paths` before scanning or reading any document. The source index contains paths/metadata, not full-text analysis or a relevance guarantee.
+- Local-only tasks: enable only `local_literature`; do not call web or PDF upload services. Existing Markdown can be read directly.
+- Remote queries: show progress and inspect `provider_results`. `empty` means a completed query found no usable result; `failed` means an error; `skipped` states why the source was unavailable.
+- A partially successful retrieval can support grounding if the available evidence is sufficient. Describe the missing coverage.
+- An all-failed/unavailable run exits with code 3 and writes `literature_sources.failure.json`, preserving the old index. Never silently treat an old index as results from the failed run.
+- The first core sources are provisional candidates. Read and assess relevance and goal coverage before using them as scientific support.
 
-The script supports arXiv, OpenAlex, Semantic Scholar, and Tavily. `web` and `local_literature` are handled by the active agent harness and task-visible files.
-
-## Per-Provider Reference
-
-Use these details to choose providers and call them correctly, whether you use the bundled script or call the APIs yourself. Normalize any manually-retrieved results into the same fields used by `literature_sources.json`.
-
-### arXiv
-
-- No API key required.
-- Endpoint: `http://export.arxiv.org/api/query`
-- Required parameters: `search_query`, `start`, `max_results`, `sortBy=relevance`, `sortOrder=descending`
-- Response format: Atom XML; each `<entry>` contains `title`, `summary`, `id` (abs page), `published`, and authors.
-- Use broad concept queries rather than long phrases.
-- Script output maps arXiv entries to `source_type: preprint` with an `arxiv` provider tag.
-
-### OpenAlex
-
-- No API key required. Set `OPENALEX_EMAIL` (or the configured `email_env`) to enter the polite pool and get more reliable rate limits.
-- Endpoint: `https://api.openalex.org/works`
-- Required parameters: `search`, `per-page`; optionally `mailto=<email>` for the polite pool.
-- Response format: JSON with `results[]`. Each work has `title`, `abstract_inverted_index`, `authorships`, `doi`, `publication_date`, `cited_by_count`, and `open_access.oa_url`.
-- Reconstruct abstract text from `abstract_inverted_index` if needed.
-- Script output maps OpenAlex works to `source_type: paper` with an `openalex` provider tag and a `citations` count.
-
-### Semantic Scholar
-
-- API key optional but recommended. Without a key, expect strict rate limits and frequent HTTP 429.
-- Environment variable: `SEMANTIC_SCHOLAR_API_KEY` (or configured `api_key_env`).
-- Endpoint: `https://api.semanticscholar.org/graph/v1/paper/search`
-- Required parameters: `query`, `limit`, `fields`
-- Useful `fields`: `title,abstract,authors,url,externalIds,year,citationCount,publicationTypes`
-- Request headers without key: `Accept: application/json`
-- Request headers with key: `x-api-key: <KEY>`
-- Response format: JSON with `data[]`; each paper has `title`, `abstract`, `authors`, `url`, `year`, `citationCount`.
-- Script output maps Semantic Scholar papers to `source_type: paper` with a `semantic_scholar` provider tag.
-
-### Tavily
-
-- API key required. Requests without a valid key return HTTP 401.
-- Environment variable: `TAVILY_API_KEY` (or configured `api_key_env`).
-- Endpoint: `https://api.tavily.com/search`
-- Method: `POST`
-- Required body fields: `api_key`, `query`, `search_depth`, `max_results`
-- Typical values: `search_depth=basic`, `max_results` up to 20 for lightweight use.
-- Response format: JSON with `results[]`; each result has `title`, `url`, `content`, `score`.
-- Script output maps Tavily results to `source_type: web` with a `tavily` provider tag.
+Running the helper is optional. Native search or direct reading may be more suitable, but preserve the same config exclusions, source provenance, and user network constraints.
 
 ## Search Rules
 
 - Search broad concepts, method families, metrics, benchmark names, protocol names, dataset names, and official documentation.
 - Prefer papers, preprints, official dataset pages, benchmark docs, method repositories, and software documentation.
-- Avoid long exact instruction spans, task identifiers, task-specific filenames, and hidden-target clues.
+- Preserve distinctive methods, settings, or phrases explicitly provided by the user when they improve search relevance. Apply benchmark-specific restrictions only when an explicit profile requires them.
 - Apply any blocklist or exclusion rule supplied by the task harness before reading full text.
-- Keep 5 to 7 core sources when enough good sources exist; add targeted docs only when needed.
+- Use enough relevant sources to support the task, without a minimum quota. Do not expand a simple local task into a broad literature survey.
 - Use `.autoscirub/literature_sources.json` as the normalized source index when the retrieval script has been run.
 
 ## Output

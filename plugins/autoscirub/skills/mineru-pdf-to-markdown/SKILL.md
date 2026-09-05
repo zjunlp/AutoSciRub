@@ -31,7 +31,9 @@ Convert only selected pages:
 python scripts/mineru_pdf_to_markdown.py paper.pdf --page-range 1-10
 ```
 
-Use `--output-dir` to choose a project-relative destination. If omitted, the script defaults to `pdf_markdown/` under the current working directory.
+Run from the research project and resolve this script relative to the installed skill directory supplied by the agent (not relative to the project). Use `--project` when running elsewhere. `--output-dir` overrides the destination; otherwise outputs go to `cache/mineru/` under the resolved AutoSciRub state directory. Configuration and `AUTOSCIRUB_STATE_DIR` follow the retrieval script’s rules. The default path requires the bundled sibling `scientific-literature-grounding` skill; standalone copies can use an explicit `--output-dir`.
+
+MinerU uploads documents to a third-party service. For local-only or confidential work, use existing Markdown or a user-approved local PDF reader. A disabled MinerU provider in project config means the workflow should not invoke this service automatically. Explicitly running the converter is a direct request to use the service.
 
 ## Workflow
 

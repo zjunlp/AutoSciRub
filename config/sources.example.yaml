@@ -1,33 +1,29 @@
+# Paths are relative to the research project, not this YAML file.
 state_dir: ".autoscirub"
+workflow:
+  max_revision_rounds: 1
 
 retrieval:
-  enabled_sources:
-    - local_literature
-    - arxiv
-    - openalex
-    - semantic_scholar
-    - tavily
-    - web
+  enabled_sources: [local_literature, arxiv, openalex, semantic_scholar]
+  local_literature:
+    paths: []  # Example: [papers] or [papers/reference.pdf]
 
   providers:
     arxiv:
       enabled: true
-
     openalex:
       enabled: true
-      email_env: "OPENALEX_EMAIL"
-
+      email_env: OPENALEX_EMAIL
+      api_key_env: OPENALEX_API_KEY
     semantic_scholar:
       enabled: true
-      api_key_env: "SEMANTIC_SCHOLAR_API_KEY"
-
+      api_key_env: SEMANTIC_SCHOLAR_API_KEY
     tavily:
       enabled: false
-      api_key_env: "TAVILY_API_KEY"
-
+      api_key_env: TAVILY_API_KEY
     mineru:
       enabled: false
-      api_key_env: "MINERU_API_TOKEN"
+      api_key_env: MINERU_API_TOKEN
 
   limits:
     max_queries_per_goal: 5
@@ -36,6 +32,6 @@ retrieval:
     max_results_per_query: 10
 
   exclusions:
-    excluded_paths: []
+    excluded_paths: []  # Exact files/directories; subdirectories are excluded too.
     blocked_titles: []
     blocked_domains: []

@@ -8,6 +8,7 @@ import hashlib
 import json
 import os
 import re
+import runpy
 import sys
 import time
 import urllib.error
@@ -353,7 +354,10 @@ def convert_one(source: str, args: argparse.Namespace) -> dict[str, Any]:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Convert PDFs/documents to Markdown with MinerU.")
     parser.add_argument("inputs", nargs="+", help="Local file paths or HTTP(S) URLs.")
-    parser.add_argument("--output-dir", default="related_work/pdf_markdown", help="Directory for Markdown and metadata.")
+    parser.add_argument("--output-dir", help="Output directory relative to project (default: STATE/cache/mineru)")
+    parser.add_argument("--project", type=Path, default=Path.cwd(), help="Research project directory")
+    parser.add_argument("--config", type=Path, help="Explicit project YAML config")
+    parser.add_argument("--state-dir", help="Override state directory")
     parser.add_argument("--mode", choices=["auto", "agent", "standard"], default="auto")
     parser.add_argument("--token-env", default="MINERU_API_TOKEN", help="Environment variable holding the MinerU API token.")
     parser.add_argument("--model-version", choices=["pipeline", "vlm", "MinerU-HTML"], default="vlm")
@@ -371,6 +375,22 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main() -> int:
     args = build_parser().parse_args()
+    project = args.project.expanduser().resolve()
+    if not project.is_dir():
+        print(f"Project directory not found: {project}", file=sys.stderr)
+        return 2
+    if args.output_dir:
+        args.output_dir = str(project / Path(args.output_dir).expanduser())
+    else:
+        helper = Path(__file__).resolve().parents[2] / "scientific-literature-grounding/scripts/retrieve_literature.py"
+        try:
+            module = runpy.run_path(str(helper))
+            config = module["load_config"](args.config, project=project, state_dir=args.state_dir)
+            args.output_dir = str(Path(config["state_dir"]) / "cache/mineru")
+        except (OSError, ValueError) as exc:
+            print(f"Configuration error: {exc}", file=sys.stderr)
+            return 2
+    args.inputs = [source if is_url(source) else str(project / Path(source).expanduser()) for source in args.inputs]
     results = []
     had_error = False
     for source in args.inputs:
