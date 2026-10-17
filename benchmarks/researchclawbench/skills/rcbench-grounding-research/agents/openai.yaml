@@ -1,0 +1,4 @@
+interface:
+  display_name: "RCBench Grounding Research"
+  short_description: "Recover public methods and complete result contracts."
+  default_prompt: "Use $rcbench-grounding-research to recover task-relevant public methods and result evidence with retrieval provenance."

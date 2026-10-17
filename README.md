@@ -24,18 +24,32 @@ AutoSciRub is a plugin bundle for AI research agents. It packages the workflow f
 [Learning to Evaluate Before Improving: Automatic Rubric Induction for Automatic Research Agents](https://arxiv.org/abs/2608.31076) as installable skills
 that work across Codex, Claude Code, and OpenClaw.
 
+The repository provides a **general-purpose research workflow** and optional
+**benchmark-specific adaptations**. The general workflow turns instructions,
+literature, and available data into an executable rubric. The
+[ResearchClawBench adaptation](benchmarks/researchclawbench/README.md) specializes
+that workflow for the benchmark's task structure, public-source protocol
+recovery, and report/figure requirements, with configurable environments and
+execution budgets.
+
 The trajectories, reports, and evaluation records from our main ResearchClawBench experiments are
 available on [Hugging Face](https://huggingface.co/datasets/huminclu/autoscirub-rcb-main-exp).
 
 ## News
 
-  **2026-09-03** — AutoSciRub achieved a higher score on the latest
+  **2026-10-17** — Added an optional
+  [ResearchClawBench skill bundle](benchmarks/researchclawbench/README.md), with
+  environment setup guidance, configurable budgets, and structural evidence
+  checks. See the adaptation guide for installation, provenance, and evaluation
+  scope; this release has not been benchmarked.
+
+  **2026-09-03** — AutoSciRub reached **33.2 Pass@1** with Codex + GPT-5.6-Sol
+  in the September 2026
   [ResearchClawBench](https://github.com/InternScience/ResearchClawBench)
-  [leaderboard](https://internscience.github.io/ResearchClawBench-Home/), reaching
-  **33.2 Pass@1** with Codex + GPT-5.6-Sol.
+  [leaderboard snapshot](https://internscience.github.io/ResearchClawBench-Home/).
 
   <p align="center">
-    <img src="assets/leaderboard0902.png" alt="AutoSciRub on the latest ResearchClawBench leaderboard" width="100%" />
+    <img src="assets/leaderboard0902.png" alt="AutoSciRub on the September 2026 ResearchClawBench leaderboard" width="100%" />
   </p>
 
   <p align="center">
@@ -58,8 +72,30 @@ available on [Hugging Face](https://huggingface.co/datasets/huminclu/autoscirub-
 - **Targeted revision loop** — revisions are driven by failed criteria, not vague feedback.
 - **Configurable retrieval backends** — built-in support for arXiv, OpenAlex, Semantic Scholar,
   and Tavily through a single script and a shared YAML config.
-- **Framework-agnostic** — no fixed paths, no fixed Python environments, no hidden benchmark
-  assumptions. Works in any research project directory.
+- **General-purpose default workflow** — adapts to your research project's paths,
+  data, and prepared environments; optional bundles make benchmark-specific
+  conventions explicit.
+
+## Choose a workflow
+
+| Workflow | Intended use | What it provides |
+| --- | --- | --- |
+| **General AutoSciRub** (default) | Research projects with their own instructions, data, and output conventions | Eight skills for rubric induction, literature grounding, data exploration, execution guidance, verification, and targeted revision |
+| **[ResearchClawBench adaptation](benchmarks/researchclawbench/README.md)** | ResearchClawBench task workspaces | Six specialized skills for instruction/source evidence mapping, complete experimental comparisons, report and figure verification, and bounded repair |
+
+Both use the same rubric-guided research approach. Adaptations make a
+benchmark's input/output conventions and evidence requirements explicit.
+Research environments are prepared by the user; the ResearchClawBench guide
+explains how to configure Python interpreter paths and task budgets. Public
+task inputs and permitted literature provide the scientific context; hidden
+evaluation materials are excluded.
+
+The bundles can coexist. Select `autoscirub` for the general workflow or
+`rcbench-workflow-controller` for the adaptation, and follow that controller's
+configuration and artifact contract for the task.
+
+The Quick Start below uses the general workflow. For benchmark tasks, follow
+the [ResearchClawBench setup guide](benchmarks/researchclawbench/README.md).
 
 ## Quick Start
 
@@ -134,9 +170,17 @@ Other supported scopes:
 
 ## Installation and updates
 
-The installer copies **all eight skills and their bundled resources** into the
-platform's personal skill directory. It does not register a marketplace or run
-the agent. These directories follow the platform documentation:
+Choose a bundle when installing; `generic` is the default:
+
+```bash
+python scripts/install.py codex                              # General workflow: eight skills
+python scripts/install.py codex --bundle researchclawbench   # Benchmark adaptation: six skills
+```
+
+Replace `codex` with `claude` or `openclaw` for that host. The installer copies
+the selected skills and their bundled resources into the platform's personal
+skill directory. It does not register a marketplace or run the agent. These
+directories follow the platform documentation:
 
 | Platform | Personal directory | Documentation |
 | --- | --- | --- |
@@ -149,6 +193,7 @@ Preview or check an installation:
 ```bash
 python scripts/install.py codex --dry-run
 python scripts/install.py codex --check
+python scripts/install.py codex --bundle researchclawbench --check
 ```
 
 `--check` verifies the installed files against this checkout. To verify
@@ -160,9 +205,11 @@ alone. Previously installed, unmodified skills are updated; locally edited or
 unmanaged same-name skills cause an actionable error before any skill is changed.
 For a custom location, use `--skills-dir` and configure your agent to load it.
 
-The existing Bash and PowerShell wrappers call the same installer:
-`./scripts/install.sh codex` or `.scriptsinstall.ps1 codex`.
-PowerShell also accepts `-Check`, `-DryRun`, and `-SkillsDir`.
+The Bash and PowerShell wrappers call the same installer:
+`./scripts/install.sh codex` or `./scripts/install.ps1 codex`.
+Select the adaptation with Bash's `--bundle researchclawbench` or PowerShell's
+`-Bundle researchclawbench`. PowerShell also accepts `-Check`, `-DryRun`, and
+`-SkillsDir`.
 
 Existing marketplace users may continue using the plugin package. Avoid enabling
 both that plugin and the personal copies simultaneously. The manifests remain in
@@ -170,6 +217,10 @@ both that plugin and the personal copies simultaneously. The manifests remain in
 plugin cache.
 
 ## Configuration
+
+This section describes the general workflow. The ResearchClawBench adaptation
+uses a separate `.rcbench/profile.yaml`; see its
+[configuration and environment guide](benchmarks/researchclawbench/README.md).
 
 `init` creates `PROJECT/.autoscirub/config.yaml`. YAML is parsed with PyYAML;
 the same JSON Schema validates both partial overrides and the resolved settings.
@@ -260,6 +311,9 @@ resume requests. `doctor` checks local configuration, dependencies, paths,
 and environment-variable presence without making paid requests or testing keys.
 
 ## Workflow and state
+
+The state files below belong to the general workflow. The ResearchClawBench
+bundle has its own [artifact contract](benchmarks/researchclawbench/skills/rcbench-workflow-controller/references/contracts.md).
 
 The controller performs seven steps: instruction goals, literature grounding,
 data exploration, criterion synthesis, research execution, criterion verification,

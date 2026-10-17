@@ -1,0 +1,4 @@
+interface:
+  display_name: "RCBench Instruction Contract"
+  short_description: "Preserve task requirements and retrieval anchors."
+  default_prompt: "Use $rcbench-instruction-rubric to extract every explicit scientific requirement from this task."

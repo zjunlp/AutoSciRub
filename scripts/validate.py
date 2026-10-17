@@ -166,6 +166,45 @@ def validate_marketplace(path: Path) -> None:
         fail(f"{path} plugin entry missing category")
 
 
+def validate_rcbench() -> None:
+    """Validate the optional bundle without installing it or starting research."""
+    import yaml
+    from jsonschema import Draft202012Validator
+
+    root = ROOT / "benchmarks/researchclawbench"
+    skills = root / "skills"
+    installer = runpy.run_path(str(ROOT / "scripts/install.py"))
+    actual = {p.name for p in skills.iterdir() if p.is_dir()}
+    if actual != installer["RCBENCH_SKILLS"]:
+        fail("ResearchClawBench bundle is incomplete")
+    for skill in sorted(skills.iterdir()):
+        if not skill.is_dir():
+            continue
+        validate_skill(skill)
+        for path in sorted(skill.rglob("*")):
+            if path.is_file() and path.suffix in {".md", ".yaml", ".json"}:
+                check_no_forbidden_text(path)
+                if path.name.endswith(".schema.json"):
+                    Draft202012Validator.check_schema(validate_json(path))
+                if path.suffix == ".md":
+                    for link in re.findall(r"\[[^\]]*\]\(([^)]+)\)", read_text(path)):
+                        link = link.split("#", 1)[0]
+                        if link and "://" not in link and not (path.parent / link).is_file():
+                            fail(f"{path} contains a missing local reference: {link}")
+    references = skills / "rcbench-workflow-controller/references"
+    profile = yaml.safe_load(read_text(references / "profile.yaml"))
+    schema = validate_json(references / "profile.schema.json")
+    Draft202012Validator(schema).validate(profile)
+    provenance = validate_json(root / "provenance.json")
+    if provenance.get("source_bundle") != "skills-0901-r2":
+        fail("ResearchClawBench provenance must name the historical source bundle")
+    if provenance.get("adaptation_version") != profile.get("adaptation_version"):
+        fail("ResearchClawBench profile and provenance versions disagree")
+    hashes = provenance.get("source_file_sha256", {})
+    if not hashes or any(not re.fullmatch(r"[0-9a-f]{64}", value) for value in hashes.values()):
+        fail("ResearchClawBench provenance is missing historical source hashes")
+
+
 def main() -> None:
     validate_plugin_manifest()
     validate_marketplace(ROOT / ".agents" / "plugins" / "marketplace.json")
@@ -174,6 +213,7 @@ def main() -> None:
     validate_example_config()
     for skill_dir in sorted(p for p in SKILLS_ROOT.iterdir() if p.is_dir()):
         validate_skill(skill_dir)
+    validate_rcbench()
     print("validation ok")
 
 

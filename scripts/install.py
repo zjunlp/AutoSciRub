@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Install all AutoSciRub skills into a platform's personal skill directory."""
+"""Install the generic or ResearchClawBench AutoSciRub skill bundle."""
 from __future__ import annotations
 import argparse
 import hashlib
@@ -17,6 +17,20 @@ EXPECTED_SKILLS = {
     "task-data-exploration", "criterion-synthesis", "criterion-level-verification",
     "targeted-revision", "mineru-pdf-to-markdown",
 }
+RCBENCH_SOURCE = ROOT / "benchmarks/researchclawbench/skills"
+RCBENCH_SKILLS = {
+    "rcbench-workflow-controller", "rcbench-instruction-rubric",
+    "rcbench-grounding-research", "rcbench-experiments-design",
+    "rcbench-report-verifier", "rcbench-mineru-pdf-to-markdown",
+}
+
+
+def bundle_source(bundle: str) -> tuple[Path, set[str]]:
+    if bundle == "generic":
+        return SOURCE, EXPECTED_SKILLS
+    if bundle == "researchclawbench":
+        return RCBENCH_SOURCE, RCBENCH_SKILLS
+    raise ValueError(f"Unknown bundle: {bundle}")
 
 
 def destination(platform: str) -> Path:
@@ -35,10 +49,11 @@ def inventory(folder: Path) -> dict[str, str]:
     return files
 
 
-def install(target: Path, *, check=False, dry_run=False) -> None:
-    sources = sorted(p for p in SOURCE.iterdir() if p.is_dir())
-    if {p.name for p in sources} != EXPECTED_SKILLS:
-        raise ValueError("Source package is incomplete; restore the eight AutoSciRub skills before installing.")
+def install(target: Path, *, check=False, dry_run=False, bundle="generic") -> None:
+    source_root, expected_skills = bundle_source(bundle)
+    sources = sorted(p for p in source_root.iterdir() if p.is_dir())
+    if {p.name for p in sources} != expected_skills:
+        raise ValueError(f"Source package is incomplete; restore the {bundle} skill bundle before installing.")
     plans = []
     # Preflight the entire bundle before modifying any skill.
     for source in sources:
@@ -65,7 +80,7 @@ def install(target: Path, *, check=False, dry_run=False) -> None:
         plans.append((source, dest, expected, current == expected))
     if check:
         print(f"Verified all {len(sources)} skills and bundled resources in {target}")
-        print("File verification only. Open a new agent session and ask it to list the AutoSciRub skills.")
+        print(f"File verification only ({bundle}). Open a new agent session to check skill discovery.")
         return
     if dry_run:
         for _, dest, _, same in plans:
@@ -91,12 +106,14 @@ def install(target: Path, *, check=False, dry_run=False) -> None:
                 raise
             if backup.exists():
                 shutil.rmtree(backup)
-    install(target, check=True)
+    install(target, check=True, bundle=bundle)
 
 
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("platform", choices=["codex", "claude", "openclaw"])
+    parser.add_argument("--bundle", choices=["generic", "researchclawbench"], default="generic",
+                        help="Select an optional benchmark adaptation; default: generic")
     parser.add_argument("--skills-dir", type=Path, help="Override the platform's personal skills directory")
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--check", action="store_true", help="Verify installed files without changes")
@@ -104,12 +121,15 @@ def main(argv=None) -> int:
     args = parser.parse_args(argv)
     try:
         target = (args.skills_dir or destination(args.platform)).expanduser().absolute()
-        if target.resolve() == SOURCE.resolve() or SOURCE.resolve() in target.resolve().parents:
-            raise ValueError("Installation destination must be outside the source skills tree.")
-        install(target, check=args.check, dry_run=args.dry_run)
+        for source_root in (SOURCE, RCBENCH_SOURCE):
+            if target.resolve() == source_root.resolve() or source_root.resolve() in target.resolve().parents:
+                raise ValueError("Installation destination must be outside the source skills trees.")
+        install(target, check=args.check, dry_run=args.dry_run, bundle=args.bundle)
         if not args.check and not args.dry_run:
+            invocation = ("Use rcbench-workflow-controller to complete INSTRUCTIONS.md."
+                          if args.bundle == "researchclawbench" else "Use AutoSciRub on my research task.")
             print("Next: use the Python environment with requirements.txt installed, restart your agent, "
-                  "and ask: Use AutoSciRub on my research task.")
+                  f"and ask: {invocation}")
             if not shutil.which(args.platform):
                 print(f"Note: {args.platform} is not on PATH; install or open that agent before using the skills.")
         return 0

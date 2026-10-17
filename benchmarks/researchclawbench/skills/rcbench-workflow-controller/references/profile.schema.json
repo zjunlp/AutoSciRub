@@ -1,0 +1,280 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AutoSciRub ResearchClawBench workspace profile",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "adaptation_version": {
+      "const": "0.1.0"
+    },
+    "source_skill_version": {
+      "const": "skills-0901-r2"
+    },
+    "default_environment": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S"
+    },
+    "environments": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9_]*$"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "python": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "\\S"
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "\\S"
+          }
+        },
+        "required": [
+          "python"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "workflow": {
+      "type": "object",
+      "properties": {
+        "max_initial_queries": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "max_followup_queries": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "max_full_texts": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "max_revision_rounds": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "max_figures": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "max_initial_queries",
+        "max_followup_queries",
+        "max_full_texts",
+        "max_revision_rounds",
+        "max_figures"
+      ],
+      "additionalProperties": false
+    },
+    "retrieval": {
+      "type": "object",
+      "properties": {
+        "enabled_sources": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "local_literature",
+              "arxiv",
+              "openalex",
+              "semantic_scholar",
+              "tavily",
+              "sciatlas"
+            ]
+          }
+        },
+        "providers": {
+          "type": "object",
+          "properties": {
+            "local_literature": {
+              "$ref": "#/$defs/provider"
+            },
+            "arxiv": {
+              "$ref": "#/$defs/provider"
+            },
+            "openalex": {
+              "$ref": "#/$defs/provider"
+            },
+            "semantic_scholar": {
+              "$ref": "#/$defs/provider"
+            },
+            "tavily": {
+              "$ref": "#/$defs/provider"
+            },
+            "sciatlas": {
+              "$ref": "#/$defs/provider"
+            }
+          },
+          "required": [],
+          "additionalProperties": false
+        },
+        "limits": {
+          "type": "object",
+          "properties": {
+            "max_queries_per_task": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "max_core_sources": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "max_supplemental_sources": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "max_results_per_query": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "rrf_k": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "required": [
+            "max_queries_per_task",
+            "max_core_sources",
+            "max_supplemental_sources",
+            "max_results_per_query",
+            "rrf_k"
+          ],
+          "additionalProperties": false
+        },
+        "exclusions": {
+          "type": "object",
+          "properties": {
+            "blocked_titles": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "\\S"
+              },
+              "uniqueItems": true
+            },
+            "blocked_domains": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "\\S"
+              },
+              "uniqueItems": true
+            },
+            "excluded_paths": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "\\S"
+              },
+              "uniqueItems": true
+            }
+          },
+          "required": [
+            "blocked_titles",
+            "blocked_domains",
+            "excluded_paths"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "enabled_sources",
+        "providers",
+        "limits",
+        "exclusions"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "schema_version",
+    "adaptation_version",
+    "source_skill_version",
+    "default_environment",
+    "environments",
+    "workflow",
+    "retrieval"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "provider": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "paths": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "\\S"
+          },
+          "uniqueItems": true
+        },
+        "max_queries": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "max_results": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "timeout_seconds": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "email_env": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        },
+        "api_key_env": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        },
+        "base_url_env": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        },
+        "base_url": {
+          "type": "string",
+          "pattern": "^https?://[^\\s?#@]+(?:/[^\\s?#]*)?$"
+        },
+        "search_depth": {
+          "enum": [
+            "basic",
+            "advanced"
+          ]
+        },
+        "retrieval_mode": {
+          "enum": [
+            "keyword",
+            "semantic"
+          ]
+        },
+        "top_k": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [],
+      "additionalProperties": false
+    }
+  }
+}

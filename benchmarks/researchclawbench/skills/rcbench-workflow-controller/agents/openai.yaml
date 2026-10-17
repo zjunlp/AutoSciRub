@@ -1,0 +1,4 @@
+interface:
+  display_name: "RCBench Workflow Controller"
+  short_description: "Run the ResearchClawBench AutoSciRub adaptation."
+  default_prompt: "Use $rcbench-workflow-controller to complete this ResearchClawBench task with the prepared workspace profile."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "RCBench Report Verifier"
+  short_description: "Check scientific evidence and task completion."
+  default_prompt: "Use $rcbench-report-verifier to check this report against the raw task, relevant sources, and generated evidence."

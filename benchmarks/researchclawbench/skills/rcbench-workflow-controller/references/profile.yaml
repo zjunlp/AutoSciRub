@@ -1,0 +1,74 @@
+# Workspace configuration for AutoSciRub's ResearchClawBench adaptation.
+# Run helpers inside an environment with PyYAML and jsonschema installed.
+# Replace Python values with your own interpreters; paths are workspace-relative.
+schema_version: '1.0'
+adaptation_version: '0.1.0'
+source_skill_version: skills-0901-r2
+default_environment: base
+environments:
+  base:
+    python: python
+    description: Active helper and general scientific environment; prepare dependencies yourself.
+  ml:
+    python: .venv-ml/bin/python
+    description: Optional machine-learning environment; replace with your interpreter path.
+  bio_geo:
+    python: .venv-bio-geo/bin/python
+    description: Optional biology or geospatial environment; replace with your interpreter path.
+workflow:
+  max_initial_queries: 3
+  max_followup_queries: 1
+  max_full_texts: 2
+  max_revision_rounds: 1
+  max_figures: 7
+retrieval:
+  enabled_sources: [local_literature, arxiv, openalex, tavily, sciatlas]
+  providers:
+    local_literature:
+      enabled: true
+      paths: [related_work]
+      max_results: 50
+    arxiv:
+      enabled: true
+      max_queries: 4
+      max_results: 8
+      timeout_seconds: 30
+    openalex:
+      enabled: true
+      email_env: OPENALEX_EMAIL
+      max_queries: 4
+      max_results: 8
+      timeout_seconds: 30
+    semantic_scholar:
+      enabled: false
+      api_key_env: SEMANTIC_SCHOLAR_API_KEY
+      max_queries: 3
+      max_results: 8
+      timeout_seconds: 30
+    tavily:
+      enabled: true
+      api_key_env: TAVILY_API_KEY
+      search_depth: basic
+      max_queries: 3
+      max_results: 8
+      timeout_seconds: 30
+    sciatlas:
+      enabled: true
+      api_key_env: SCIATLAS_API_KEY
+      base_url_env: SCIATLAS_API_BASE_URL
+      base_url: http://sciatlas.openkg.cn
+      retrieval_mode: keyword
+      top_k: 5
+      max_queries: 2
+      max_results: 5
+      timeout_seconds: 120
+  limits:
+    max_queries_per_task: 4
+    max_core_sources: 5
+    max_supplemental_sources: 8
+    max_results_per_query: 8
+    rrf_k: 60
+  exclusions:
+    blocked_titles: []
+    blocked_domains: []
+    excluded_paths: []

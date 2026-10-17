@@ -1,0 +1,4 @@
+interface:
+  display_name: "RCBench Experiment Design"
+  short_description: "Map task requirements to executable evidence."
+  default_prompt: "Use $rcbench-experiments-design to build an execution rubric preserving methods, comparisons, and artifact semantics."

@@ -1,0 +1,74 @@
+# Standalone retrieval defaults for autoscirub-rcbench-0.1.0.
+# Prefer the complete project profile at .rcbench/profile.yaml.
+# Credentials are environment-only; max_queries counts cumulative attempts,
+# including errors/skips and previous --resume rounds.
+workflow:
+  max_initial_queries: 3
+  max_followup_queries: 1
+retrieval:
+  enabled_sources:
+    - local_literature
+    - arxiv
+    - openalex
+    - tavily
+    - sciatlas
+
+  providers:
+    local_literature:
+      enabled: true
+      paths:
+        - related_work
+      max_results: 50
+
+    arxiv:
+      enabled: true
+      max_queries: 4
+      max_results: 8
+      timeout_seconds: 30
+
+    openalex:
+      enabled: true
+      email_env: OPENALEX_EMAIL
+      max_queries: 4
+      max_results: 8
+      timeout_seconds: 30
+
+    semantic_scholar:
+      enabled: false
+      api_key_env: SEMANTIC_SCHOLAR_API_KEY
+      max_queries: 3
+      max_results: 8
+      timeout_seconds: 30
+
+    tavily:
+      enabled: true
+      api_key_env: TAVILY_API_KEY
+      search_depth: basic
+      max_queries: 3
+      max_results: 8
+      timeout_seconds: 30
+
+    sciatlas:
+      enabled: true
+      api_key_env: SCIATLAS_API_KEY
+      base_url_env: SCIATLAS_API_BASE_URL
+      base_url: http://sciatlas.openkg.cn
+      retrieval_mode: keyword
+      top_k: 5
+      max_queries: 2
+      max_results: 5
+      timeout_seconds: 120
+
+  limits:
+    max_queries_per_task: 4
+    max_core_sources: 5
+    max_supplemental_sources: 8
+    max_results_per_query: 8
+    rrf_k: 60
+
+  exclusions:
+    blocked_titles: []
+    blocked_domains: []
+    # Workspace-relative subtrees excluded before traversal/opening.
+    # target_study and checklist paths are always forbidden.
+    excluded_paths: []

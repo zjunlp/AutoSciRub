@@ -27,6 +27,8 @@ jobs:
           bash -n scripts/install.sh
           bash scripts/install.sh codex --skills-dir "$RUNNER_TEMP/autoscirub skills"
           bash scripts/install.sh codex --skills-dir "$RUNNER_TEMP/autoscirub skills" --check
+          bash scripts/install.sh codex --bundle researchclawbench --skills-dir "$RUNNER_TEMP/autoscirub skills"
+          bash scripts/install.sh codex --bundle researchclawbench --skills-dir "$RUNNER_TEMP/autoscirub skills" --check
       - name: PowerShell installer (isolated destination)
         if: runner.os == 'Windows'
         shell: pwsh
@@ -35,4 +37,8 @@ jobs:
           & ./scripts/install.ps1 claude -SkillsDir $destination
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           & ./scripts/install.ps1 claude -SkillsDir $destination -Check
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          & ./scripts/install.ps1 claude -Bundle researchclawbench -SkillsDir $destination
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          & ./scripts/install.ps1 claude -Bundle researchclawbench -SkillsDir $destination -Check
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

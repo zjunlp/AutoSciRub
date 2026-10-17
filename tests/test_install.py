@@ -83,6 +83,41 @@ class InstallTests(unittest.TestCase):
                 self.assertEqual((target / "autoscirub/SKILL.md").read_text(encoding="utf-8"), skill.read_text(encoding="utf-8"))
                 M["install"](target, check=True)
 
+    def test_benchmark_bundle_coexists_without_replacing_generic_skills(self):
+        with tempfile.TemporaryDirectory(prefix="adapter with spaces ") as temp, contextlib.redirect_stdout(io.StringIO()):
+            target = Path(temp) / "skills"
+            M["install"](target)
+            before = M["inventory"](target / "mineru-pdf-to-markdown")
+            M["install"](target, bundle="researchclawbench")
+            self.assertEqual({p.name for p in target.iterdir()}, M["EXPECTED_SKILLS"] | M["RCBENCH_SKILLS"])
+            self.assertEqual(before, M["inventory"](target / "mineru-pdf-to-markdown"))
+            M["install"](target, bundle="researchclawbench", check=True)
+            helper = target / "rcbench-workflow-controller/scripts/rcbench.py"
+            initialized = subprocess.run([sys.executable, "-B", str(helper), "init", "--workspace", temp],
+                                         cwd=temp, capture_output=True, text=True)
+            self.assertEqual(initialized.returncode, 0, initialized.stderr)
+            result = subprocess.run([sys.executable, "-B", str(helper), "config", "--workspace", temp],
+                                    cwd=temp, capture_output=True, text=True)
+            self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_benchmark_conflict_preflights_the_entire_bundle(self):
+        with tempfile.TemporaryDirectory() as temp:
+            target = Path(temp)
+            conflict = target / "rcbench-workflow-controller"
+            conflict.mkdir()
+            (conflict / "SKILL.md").write_text("Local method")
+            with self.assertRaisesRegex(ValueError, "unmanaged"):
+                M["install"](target, bundle="researchclawbench")
+            self.assertEqual(list(target.iterdir()), [conflict])
+
+    def test_cli_rejects_installation_into_either_source_tree(self):
+        for bundle in ("generic", "researchclawbench"):
+            result = subprocess.run([sys.executable, "-B", str(ROOT / "scripts/install.py"), "codex",
+                                     "--bundle", bundle, "--skills-dir", str(M["RCBENCH_SOURCE"]), "--dry-run"],
+                                    capture_output=True, text=True)
+            self.assertEqual(result.returncode, 1)
+            self.assertIn("outside the source", result.stderr)
+
 
 if __name__ == "__main__":
     unittest.main()

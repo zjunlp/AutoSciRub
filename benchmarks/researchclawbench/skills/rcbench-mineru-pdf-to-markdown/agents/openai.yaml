@@ -1,0 +1,4 @@
+interface:
+  display_name: "RCBench MinerU PDF Recovery"
+  short_description: "Recover relevant scientific PDF text with MinerU."
+  default_prompt: "Use $rcbench-mineru-pdf-to-markdown to recover missing scientific text from selected task-relevant PDFs."

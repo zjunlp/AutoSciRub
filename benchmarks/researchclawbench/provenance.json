@@ -1,0 +1,32 @@
+{
+  "adaptation_version": "0.1.0",
+  "source_bundle": "skills-0901-r2",
+  "source_repository": "https://github.com/XuehaiWang/ResearchClawBench",
+  "source_repository_commit": "2ee9264b51883c4320ee10be7433bd944b83e959",
+  "source_file_sha256": {
+    "mineru-pdf-to-markdown/SKILL.md": "97cc2aa0da63abb048aedbb3ed787e5c80b4cbaed9dfa194a150b978a0483aeb",
+    "mineru-pdf-to-markdown/agents/openai.yaml": "b54f6ea21f432e3593fd2cd6cc88e602f44df287df13b7a631b70bcf21416213",
+    "mineru-pdf-to-markdown/references/mineru_api.md": "41127be2acfe970571157e409aad55ae658b9551f725dfbbdafd230b11da4ef5",
+    "mineru-pdf-to-markdown/scripts/mineru_pdf_to_markdown.py": "43f29338ca4c291ba07502a99e7b56195d329ac00f73f29bcb68224aaf7108eb",
+    "rcbench-experiments-design/SKILL.md": "acb9cb01a5d609d960a82fb4afaa325541650807bd9a217fa091cbf8d951d09c",
+    "rcbench-experiments-design/agents/openai.yaml": "1924f751568391a3c04608b4b3c0906465d765472567e5745c0d2e31266121b5",
+    "rcbench-grounding-research/SKILL.md": "b515805470a908f6b26442850b7e93a69014003dc426189317c19082f5edca1b",
+    "rcbench-grounding-research/agents/openai.yaml": "9c25e7c677d24aca1ffbecb1f5b8158b297008df1c3a132bd457592134d26f3a",
+    "rcbench-grounding-research/references/autoscirub_sources.yaml": "5ccbb07d603ac62ab89fdfd3d992ef626d3b184b55729dede34d506296021e4e",
+    "rcbench-grounding-research/references/retrieval_schema.md": "64fbaed255a15d9744a47ae6786ed084e0d4fd6a9cdf23f72180427c205ddf0d",
+    "rcbench-grounding-research/scripts/annotate_retrieval_trace.py": "32aa8a1831535df2920938b494ca90cd3f0fd78b094b8e00871f984e8842ab80",
+    "rcbench-grounding-research/scripts/retrieve_literature.py": "17e8dbed5fd7f7f2b93575da9dbeb4cbef2efad56ba511bfd4d7123e01179cfb",
+    "rcbench-grounding-research/scripts/test_annotate_retrieval_trace.py": "d9c236d335fa05b12718a93bc46ebb772346e1a775877a3a06fa02549a0ca509",
+    "rcbench-grounding-research/scripts/test_retrieve_literature.py": "06576348efe8cf58549cf9fc3fee45d92362e0b25aa61d3305afae312b4c0ac1",
+    "rcbench-instruction-rubric/SKILL.md": "1fbd6b77b6c5956fe2d9e461aefd83145f9dd2285fbf43c4a4985359076bf130",
+    "rcbench-instruction-rubric/agents/openai.yaml": "4a323ded71ac015aa20957f7a8018e1c966b6172d40b014bb5252e0a9b88671a",
+    "rcbench-report-verifier/SKILL.md": "fbe9f56398a22c466eb98605d6ed67f74ccc462364b23222ab837169f64d1499",
+    "rcbench-report-verifier/agents/openai.yaml": "931feb2fdda39e4154edf3effecd3422f9153d3840b620c450745c735d51f61e",
+    "rcbench-workflow-controller/SKILL.md": "1f91f095209f437c42bb985f1905504933e487037f9efc7e2784216f09b1ded9",
+    "rcbench-workflow-controller/agents/openai.yaml": "8284252d4d10103e8e578b397a85e127750ff0aef64aabf6c308abb72f82a16e"
+  },
+  "renamed_skills": {
+    "mineru-pdf-to-markdown": "rcbench-mineru-pdf-to-markdown"
+  },
+  "note": "Source hashes identify the historical input, not the modified release. This adaptation has not been benchmarked; historical scores do not establish its performance."
+}
